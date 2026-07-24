@@ -20,6 +20,15 @@ REFUSAL = "すみません、その内容については今の社内資料から
 HARD_FLOOR = 0.05
 COVERAGE_THRESHOLD = 0.28
 TOP_CONTEXTS = 5
+EXCERPT_LEN = 220
+
+
+def _excerpt(chunk: dict) -> str:
+    """Short preview of the source passage, for the citation popover."""
+    text = chunk["content"]
+    if chunk["section"] and text.startswith(chunk["section"]):
+        text = text[len(chunk["section"]):].strip()
+    return text[:EXCERPT_LEN] + ("…" if len(text) > EXCERPT_LEN else "")
 
 
 class Engine:
@@ -86,7 +95,7 @@ class Engine:
                 result = {"answer": REFUSAL, "sources": [], "mode": "refusal", "answered": False}
             else:
                 sources = [
-                    {"doc": c["doc_title"], "section": c["section"]}
+                    {"doc": c["doc_title"], "section": c["section"], "excerpt": _excerpt(c)}
                     for c in contexts[:3]
                 ]
                 result = {"answer": text, "sources": sources, "mode": mode, "answered": True}

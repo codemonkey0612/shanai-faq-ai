@@ -4,66 +4,97 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>社内FAQ AI — ログイン</title>
+<link rel="stylesheet" href="/assets/style.css">
 <style>
-  :root {
-    --accent: #2f6fed; --accent-soft: #eaf1fe; --bg: #f4f6f9; --card: #fff;
-    --text: #1f2937; --muted: #6b7280; --border: #e5e7eb;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
-    background: var(--bg); color: var(--text);
-    display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 20px; position: relative; overflow: hidden;
   }
+  .bg-glow {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(560px circle at 15% 10%, var(--primary-soft), transparent 60%),
+      radial-gradient(480px circle at 88% 92%, var(--primary-soft), transparent 60%);
+  }
+  .toggle-corner { position: fixed; top: 20px; right: 20px; }
   .card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 36px 32px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.06);
-    text-align: center;
+    width: 100%; max-width: 380px; padding: 40px 34px 34px; text-align: center;
+    animation: rise .35s var(--ease);
   }
-  .logo {
-    width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px;
-    margin: 0 auto 16px;
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .card.shake { animation: shake .4s var(--ease); }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); }
   }
+  .brand-mark { width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 18px; }
+  .brand-mark svg { width: 28px; height: 28px; }
   h1 { font-size: 17px; margin-bottom: 6px; }
-  p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.7; }
-  input {
-    width: 100%; font-size: 15px; font-family: inherit; text-align: center;
-    border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px;
-    outline: none; margin-bottom: 12px;
+  .subtitle { font-size: 13px; color: var(--text-2); margin-bottom: 26px; line-height: 1.75; }
+  .field { position: relative; margin-bottom: 12px; }
+  .field svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; color: var(--text-3); pointer-events: none;
   }
-  input:focus { border-color: var(--accent); }
-  button {
-    width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px;
-    padding: 12px; font-size: 14.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  .field input { padding-left: 40px; text-align: left; }
+  #btn { width: 100%; padding: 11px; font-size: 14.5px; }
+  .spinner {
+    width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff;
+    animation: spin .7s linear infinite; display: none;
   }
-  button:disabled { opacity: .5; }
-  .error { color: #b91c1c; font-size: 12.5px; margin-top: 12px; min-height: 18px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #btn.loading .spinner { display: inline-block; }
+  #btn.loading .btn-label { display: none; }
+  .error-box {
+    display: flex; align-items: center; gap: 7px; justify-content: center;
+    color: var(--danger); font-size: 12.5px; margin-top: 14px; min-height: 16px;
+  }
+  .error-box svg { width: 14px; height: 14px; flex-shrink: 0; }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">Q</div>
+<div class="bg-glow"></div>
+<button class="theme-toggle toggle-corner" id="theme-btn" aria-label="テーマ切り替え">
+  <svg class="icon-sun" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.6 4.4l-1.5 1.5M5.9 14.1l-1.5 1.5M15.6 15.6l-1.5-1.5M5.9 5.9L4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <svg class="icon-moon" viewBox="0 0 20 20" fill="none"><path d="M17 11.2A7.2 7.2 0 018.8 3 7.2 7.2 0 1017 11.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+</button>
+
+<div class="card" id="card">
+  <div class="brand-mark">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9.5l1.8 1.8L15 7.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
   <h1>社内FAQ AI</h1>
-  <p>アクセスコードを入力してください。<br>（管理者の方は管理パスワードを入力）</p>
+  <p class="subtitle">アクセスコードを入力してください。<br>（管理者の方は管理パスワードを入力）</p>
   <form id="form">
-    <input id="code" type="password" placeholder="アクセスコード" autocomplete="current-password" autofocus>
-    <button id="btn" type="submit">ログイン</button>
+    <div class="field">
+      <svg viewBox="0 0 20 20" fill="none"><rect x="4" y="8.5" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 8.5V6a3.5 3.5 0 017 0v2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input class="input" id="code" type="password" placeholder="アクセスコード" autocomplete="current-password" autofocus>
+    </div>
+    <button class="btn btn-primary" id="btn" type="submit">
+      <span class="spinner"></span><span class="btn-label">ログイン</span>
+    </button>
   </form>
-  <div class="error" id="error"></div>
+  <div class="error-box" id="error"></div>
 </div>
+
+<script src="/assets/app.js"></script>
 <script>
+document.getElementById("theme-btn").addEventListener("click", () => Theme.toggle());
+
 const form = document.getElementById('form');
 const codeInput = document.getElementById('code');
 const btn = document.getElementById('btn');
-const error = document.getElementById('error');
+const errorBox = document.getElementById('error');
+const card = document.getElementById('card');
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const code = codeInput.value.trim();
   if (!code) return;
   btn.disabled = true;
-  error.textContent = '';
+  btn.classList.add('loading');
+  errorBox.innerHTML = '';
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
@@ -73,13 +104,16 @@ form.addEventListener('submit', async e => {
     const data = await res.json();
     if (data.ok) {
       location.href = data.role === 'admin' ? '/admin' : '/';
-    } else {
-      error.textContent = data.error || 'ログインに失敗しました';
+      return;
     }
+    errorBox.innerHTML = ICONS.alert + `<span>${data.error || 'ログインに失敗しました'}</span>`;
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    codeInput.select();
   } catch (err) {
-    error.textContent = 'エラーが発生しました: ' + err.message;
+    errorBox.innerHTML = ICONS.alert + `<span>エラーが発生しました: ${err.message}</span>`;
   } finally {
     btn.disabled = false;
+    btn.classList.remove('loading');
   }
 });
 </script>

@@ -3,222 +3,213 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>社内FAQ AI — デモ</title>
-<style>
-  :root {
-    --accent: #2f6fed;
-    --accent-soft: #eaf1fe;
-    --bg: #f4f6f9;
-    --card: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
-    background: var(--bg); color: var(--text);
-    display: flex; flex-direction: column; height: 100vh;
-  }
-  header {
-    background: var(--card); border-bottom: 1px solid var(--border);
-    padding: 14px 22px; display: flex; align-items: center; gap: 12px;
-  }
-  .logo {
-    width: 34px; height: 34px; border-radius: 9px; background: var(--accent);
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 15px; flex-shrink: 0;
-  }
-  header h1 { font-size: 16px; font-weight: 700; }
-  header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  #chat {
-    flex: 1; overflow-y: auto; padding: 24px 0 12px;
-  }
-  .inner { max-width: 780px; margin: 0 auto; padding: 0 20px; }
-  .row { display: flex; margin-bottom: 16px; }
-  .row.user { justify-content: flex-end; }
-  .bubble {
-    max-width: 82%; padding: 12px 16px; border-radius: 14px;
-    font-size: 14.5px; line-height: 1.75; white-space: pre-wrap; word-break: break-word;
-  }
-  .user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-  .bot .bubble {
-    background: var(--card); border: 1px solid var(--border);
-    border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
-  }
-  .sources { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .source-chip {
-    font-size: 12px; color: var(--accent); background: var(--accent-soft);
-    border-radius: 999px; padding: 3px 11px;
-  }
-  .mode-tag { display: inline-block; font-size: 11px; color: var(--muted); margin-top: 8px; }
-  .feedback { margin-top: 10px; display: flex; gap: 6px; align-items: center; }
-  .fb-btn {
-    border: 1px solid var(--border); background: var(--card); border-radius: 999px;
-    font-size: 13px; padding: 3px 10px; cursor: pointer; transition: all .15s;
-  }
-  .fb-btn:hover { background: var(--accent-soft); }
-  .fb-btn.selected { background: var(--accent-soft); border-color: var(--accent); }
-  .fb-btn:disabled { cursor: default; opacity: .55; }
-  .fb-thanks { font-size: 11.5px; color: var(--muted); }
-  .header-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
-  .header-btn {
-    font-size: 12.5px; color: var(--accent); background: var(--accent-soft);
-    border: none; border-radius: 999px; padding: 6px 14px; cursor: pointer;
-    text-decoration: none;
-  }
-  .welcome {
-    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-    padding: 22px; margin-bottom: 20px;
-  }
-  .welcome h2 { font-size: 15px; margin-bottom: 6px; }
-  .welcome p { font-size: 13px; color: var(--muted); line-height: 1.7; }
-  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-  .suggestion {
-    font-size: 13px; border: 1px solid var(--border); background: var(--card);
-    color: var(--accent); border-radius: 999px; padding: 7px 14px; cursor: pointer;
-    transition: background .15s;
-  }
-  .suggestion:hover { background: var(--accent-soft); }
-  .typing { display: inline-flex; gap: 4px; padding: 6px 2px; }
-  .typing span {
-    width: 7px; height: 7px; border-radius: 50%; background: #c3cbd6;
-    animation: blink 1.2s infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: .2s; }
-  .typing span:nth-child(3) { animation-delay: .4s; }
-  @keyframes blink { 0%,80%,100% { opacity: .25 } 40% { opacity: 1 } }
-  footer {
-    background: var(--card); border-top: 1px solid var(--border); padding: 14px 20px 18px;
-  }
-  .input-row {
-    max-width: 780px; margin: 0 auto; display: flex; gap: 10px;
-  }
-  #q {
-    flex: 1; font-size: 14.5px; font-family: inherit;
-    border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px;
-    outline: none; transition: border-color .15s;
-  }
-  #q:focus { border-color: var(--accent); }
-  #send {
-    background: var(--accent); color: #fff; border: none; border-radius: 12px;
-    padding: 0 22px; font-size: 14.5px; font-family: inherit; cursor: pointer;
-    font-weight: 600;
-  }
-  #send:disabled { opacity: .5; cursor: default; }
-  .disclaimer {
-    max-width: 780px; margin: 8px auto 0; font-size: 11.5px; color: var(--muted);
-    text-align: center;
-  }
-</style>
+<title>社内FAQ AI</title>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/chat.css">
 </head>
 <body>
 <header>
-  <div class="logo">Q</div>
+  <div class="brand-mark">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9.5l1.8 1.8L15 7.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
   <div>
     <h1>社内FAQ AI</h1>
     <div class="sub" id="subtitle">社内規程・マニュアルに基づいて回答します</div>
   </div>
   <div class="header-actions">
-    <button class="header-btn" id="newchat">＋ 新しい会話</button>
-    <a class="header-btn" href="/admin">管理画面</a>
+    <button class="theme-toggle" id="theme-btn" aria-label="テーマ切り替え">
+      <svg class="icon-sun" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.6 4.4l-1.5 1.5M5.9 14.1l-1.5 1.5M15.6 15.6l-1.5-1.5M5.9 5.9L4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg class="icon-moon" viewBox="0 0 20 20" fill="none"><path d="M17 11.2A7.2 7.2 0 018.8 3 7.2 7.2 0 1017 11.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="btn btn-ghost" id="newchat">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>新しい会話</span>
+    </button>
+    <a class="btn btn-ghost" href="/admin">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="currentColor" stroke-width="1.6"/><path d="M15.9 12.3a1.4 1.4 0 00.28 1.54l.05.05a1.7 1.7 0 11-2.4 2.4l-.05-.05a1.4 1.4 0 00-1.54-.28 1.4 1.4 0 00-.85 1.28v.14a1.7 1.7 0 11-3.4 0v-.07a1.4 1.4 0 00-.92-1.28 1.4 1.4 0 00-1.54.28l-.05.05a1.7 1.7 0 11-2.4-2.4l.05-.05a1.4 1.4 0 00.28-1.54 1.4 1.4 0 00-1.28-.85h-.14a1.7 1.7 0 110-3.4h.07a1.4 1.4 0 001.28-.92 1.4 1.4 0 00-.28-1.54l-.05-.05a1.7 1.7 0 112.4-2.4l.05.05a1.4 1.4 0 001.54.28h.07a1.4 1.4 0 00.85-1.28v-.14a1.7 1.7 0 113.4 0v.07a1.4 1.4 0 00.85 1.28 1.4 1.4 0 001.54-.28l.05-.05a1.7 1.7 0 112.4 2.4l-.05.05a1.4 1.4 0 00-.28 1.54v.07a1.4 1.4 0 001.28.85h.14a1.7 1.7 0 110 3.4h-.07a1.4 1.4 0 00-1.28.85z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      <span>管理画面</span>
+    </a>
   </div>
 </header>
 
-<div id="chat"><div class="inner" id="messages">
-  <div class="welcome">
-    <h2>👋 こんにちは！社内のことなら何でも聞いてください</h2>
-    <p>就業規則・経費精算規程・社内FAQ を読み込んでいます。回答には必ず出典（根拠となる規程の条項）を表示します。資料に載っていないことは、推測せず「わからない」とお答えします。</p>
-    <div class="suggestions" id="suggestions"></div>
+<div id="chat-scroll">
+  <div class="inner" id="messages">
+    <div class="welcome card">
+      <div class="welcome-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 4.4L18 9l-4.1 1.6L12 15l-1.9-4.4L6 9l4.1-1.6L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M19 14.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8.8-1.9z" fill="currentColor"/></svg>
+      </div>
+      <h2>こんにちは！社内のことなら何でも聞いてください</h2>
+      <p>就業規則・経費精算規程・社内FAQ を読み込んでいます。回答には必ず出典（根拠となる規程の条項）を表示します。資料に載っていないことは、推測せず「わからない」とお答えします。</p>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
   </div>
-</div></div>
+  <button class="scroll-btn" id="scroll-btn" aria-label="最新のメッセージへ">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
 
 <footer>
   <div class="input-row">
-    <input id="q" type="text" placeholder="質問を入力してください…" autocomplete="off">
-    <button id="send">送信</button>
+    <textarea class="input" id="q" rows="1" placeholder="質問を入力してください…（Shift+Enterで改行）" autocomplete="off"></textarea>
+    <button class="btn btn-primary" id="send" aria-label="送信">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
-  <div class="disclaimer">回答はAIによる生成です。重要な判断の際は出典の原文をご確認ください。 — 株式会社サンプル商事（架空の会社のデモデータ）</div>
+  <div class="disclaimer">回答はAIによる生成です。重要な判断の際は出典の原文をご確認ください。 — <span id="tenant-footer">株式会社サンプル商事（架空の会社のデモデータ）</span></div>
 </footer>
 
+<script src="/assets/app.js"></script>
 <script>
+document.getElementById("theme-btn").addEventListener("click", () => Theme.toggle());
+
+const SOURCE_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M6 3.5h6l3 3v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-11.5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 3.5V7h3" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const CHEVRON = '<svg class="chevron" viewBox="0 0 20 20" fill="none"><path d="M5.5 8l4.5 4 4.5-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const THUMB_UP = '<svg viewBox="0 0 20 20" fill="none"><path d="M7 18H4.5a1 1 0 01-1-1v-6.5a1 1 0 011-1H7m0 8.5V9.5m0 8.5h6.3a2 2 0 001.94-1.52l1.1-4.5A1.5 1.5 0 0014.9 9.5H11l.6-3.4a1.4 1.4 0 00-2.5-1.05L7 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const THUMB_DOWN = '<svg viewBox="0 0 20 20" fill="none"><path d="M7 2h-2.5a1 1 0 00-1 1v6.5a1 1 0 001 1H7m0-8.5V10m0-8.5h6.3a2 2 0 011.94 1.52l1.1 4.5a1.5 1.5 0 01-1.44 1.98H11l.6 3.4a1.4 1.4 0 01-2.5 1.05L7 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 const messages = document.getElementById('messages');
-const chat = document.getElementById('chat');
+const chatScroll = document.getElementById('chat-scroll');
 const input = document.getElementById('q');
 const sendBtn = document.getElementById('send');
+const scrollBtn = document.getElementById('scroll-btn');
 
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text !== undefined) e.textContent = text;
-  return e;
+function nearBottom() {
+  return chatScroll.scrollHeight - chatScroll.scrollTop - chatScroll.clientHeight < 120;
 }
+function scrollToBottom(smooth) {
+  chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+}
+chatScroll.addEventListener('scroll', () => {
+  scrollBtn.classList.toggle('visible', !nearBottom() && chatScroll.scrollHeight > chatScroll.clientHeight + 40);
+});
+scrollBtn.addEventListener('click', () => scrollToBottom(true));
 
 function addUser(text) {
   const row = el('div', 'row user');
-  row.appendChild(el('div', 'bubble', text));
+  const col = el('div', 'bubble-col');
+  col.appendChild(el('div', 'bubble', text));
+  row.appendChild(col);
   messages.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom(true);
 }
 
 function addTyping() {
-  const row = el('div', 'row bot');
+  const row = el('div', 'row bot typing-row');
+  const avatar = el('div', 'avatar');
+  avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" fill="currentColor"/></svg>';
+  const col = el('div', 'bubble-col');
   const bubble = el('div', 'bubble');
   const t = el('div', 'typing');
   for (let i = 0; i < 3; i++) t.appendChild(el('span'));
   bubble.appendChild(t);
-  row.appendChild(bubble);
+  col.appendChild(bubble);
+  row.appendChild(avatar);
+  row.appendChild(col);
   messages.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom(true);
   return row;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+// Minimal, safe markdown: escapes HTML first, then only allows **bold** and "- " bullet lists.
+function renderAnswer(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  for (const raw of lines) {
+    const line = escapeHtml(raw).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const bullet = /^[-・]\s+(.*)$/.exec(line);
+    if (bullet) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${bullet[1]}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += line === '' ? '<br>' : `<div>${line}</div>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function addSourcePanel(bubble, source, idx) {
+  const chip = el('button', 'source-chip');
+  chip.type = 'button';
+  chip.innerHTML = SOURCE_ICON + `<span>${source.doc}　${source.section}</span>` + CHEVRON;
+  const panel = el('div', 'excerpt-panel');
+  if (source.excerpt) {
+    panel.innerHTML = `<div class="excerpt-title">${source.doc}　${source.section}</div><div>${source.excerpt}</div>`;
+  }
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('open');
+    panel.classList.toggle('open');
+  });
+  return { chip, panel };
 }
 
 function addFeedback(bubble, messageId) {
   const box = el('div', 'feedback');
-  const good = el('button', 'fb-btn', '👍');
-  const bad = el('button', 'fb-btn', '👎');
-  async function send(rating, btn) {
+  const good = el('button', 'fb-btn'); good.innerHTML = THUMB_UP; good.setAttribute('aria-label', '役に立った');
+  const bad = el('button', 'fb-btn'); bad.innerHTML = THUMB_DOWN; bad.setAttribute('aria-label', '役に立たなかった');
+  async function send(rating, btn, other) {
     try {
       await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message_id: messageId, rating }),
       });
-      btn.classList.add('selected');
+      btn.classList.add('selected', rating === 1 ? 'good' : 'bad');
       good.disabled = bad.disabled = true;
-      box.appendChild(el('span', 'fb-thanks', 'フィードバックありがとうございます'));
-    } catch (e) { /* ignore */ }
+      toast('フィードバックありがとうございます');
+    } catch (e) { toast('送信に失敗しました', 'error'); }
   }
-  good.addEventListener('click', () => send(1, good));
-  bad.addEventListener('click', () => send(-1, bad));
+  good.addEventListener('click', () => send(1, good, bad));
+  bad.addEventListener('click', () => send(-1, bad, good));
   box.appendChild(good);
   box.appendChild(bad);
-  bubble.appendChild(box);
+  return box;
 }
 
 function addBot(data) {
   const row = el('div', 'row bot');
-  const bubble = el('div', 'bubble');
-  bubble.appendChild(document.createTextNode(data.answer));
+  const avatar = el('div', 'avatar');
+  avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" fill="currentColor"/></svg>';
+  const col = el('div', 'bubble-col');
+  const bubble = el('div', 'bubble' + (data.mode === 'refusal' ? ' refusal' : ''));
+  bubble.innerHTML = renderAnswer(data.answer);
+
   if (data.sources && data.sources.length) {
     const srcs = el('div', 'sources');
-    data.sources.forEach(s => srcs.appendChild(el('span', 'source-chip', '📄 ' + s.doc + '　' + s.section)));
+    const panels = [];
+    data.sources.forEach((s, i) => {
+      const { chip, panel } = addSourcePanel(bubble, s, i);
+      srcs.appendChild(chip);
+      panels.push(panel);
+    });
     bubble.appendChild(srcs);
+    panels.forEach(p => bubble.appendChild(p));
   }
-  const modeLabels = { ai: 'AI回答', extract: '抜粋モード（APIキー設定でAI回答に切替）', refusal: '' };
-  if (modeLabels[data.mode]) bubble.appendChild(el('div', 'mode-tag', modeLabels[data.mode]));
-  if (data.message_id) addFeedback(bubble, data.message_id);
-  row.appendChild(bubble);
+
+  const metaRow = el('div', 'meta-row');
+  if (data.mode === 'extract') metaRow.appendChild(el('span', 'mode-tag', '抜粋モード（APIキー設定でAI回答に切替）'));
+  if (data.message_id) metaRow.appendChild(addFeedback(bubble, data.message_id));
+  if (metaRow.children.length) bubble.appendChild(metaRow);
+
+  col.appendChild(bubble);
+  row.appendChild(avatar);
+  row.appendChild(col);
   messages.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom(true);
 }
 
-let history = [];  // recent {q, a} pairs sent for follow-up context
+let history = [];
 
 async function ask(text) {
   const question = (text || input.value).trim();
   if (!question) return;
   input.value = '';
+  autosize();
   sendBtn.disabled = true;
   addUser(question);
   const typing = addTyping();
@@ -244,6 +235,18 @@ async function ask(text) {
   }
 }
 
+function autosize() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+}
+input.addEventListener('input', autosize);
+
+sendBtn.addEventListener('click', () => ask());
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(); }
+});
+input.focus();
+
 document.getElementById('newchat').addEventListener('click', () => {
   history = [];
   [...messages.children].forEach(c => { if (!c.classList.contains('welcome')) c.remove(); });
@@ -256,6 +259,7 @@ const DEFAULT_QUESTIONS = [
   'リモートワークは週何日までできますか？',
   '会議室を予約するにはどうすればいいですか？',
 ];
+const SUGGESTION_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M10 2v2M10 16v2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M2 10h2M16 10h2M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4M10 6.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
 async function loadMeta() {
   const box = document.getElementById('suggestions');
@@ -264,22 +268,20 @@ async function loadMeta() {
     const meta = await (await fetch('/api/meta')).json();
     if (meta.name) {
       document.getElementById('subtitle').textContent = meta.name + ' の社内規程・マニュアルに基づいて回答します';
+      document.getElementById('tenant-footer').textContent = meta.name;
       document.title = '社内FAQ AI — ' + meta.name;
     }
     if (meta.questions && meta.questions.length) questions = meta.questions;
   } catch (e) { /* defaults */ }
   box.innerHTML = '';
   questions.forEach(q => {
-    const b = el('button', 'suggestion', q.length > 24 ? q.slice(0, 23) + '…' : q);
+    const b = el('button', 'suggestion');
+    b.innerHTML = SUGGESTION_ICON + `<span>${q.length > 26 ? q.slice(0, 25) + '…' : q}</span>`;
     b.addEventListener('click', () => ask(q));
     box.appendChild(b);
   });
 }
 loadMeta();
-
-sendBtn.addEventListener('click', () => ask());
-input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) ask(); });
-input.focus();
 </script>
 </body>
 </html>

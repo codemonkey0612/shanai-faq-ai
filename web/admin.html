@@ -4,172 +4,233 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>社内FAQ AI — 管理画面</title>
-<style>
-  :root {
-    --accent: #2f6fed; --accent-soft: #eaf1fe; --bg: #f4f6f9; --card: #fff;
-    --text: #1f2937; --muted: #6b7280; --border: #e5e7eb; --warn: #b45309; --warn-soft: #fef3c7;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh;
-  }
-  header {
-    background: var(--card); border-bottom: 1px solid var(--border);
-    padding: 14px 22px; display: flex; align-items: center; gap: 12px;
-  }
-  .logo {
-    width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-weight: 700;
-  }
-  header h1 { font-size: 16px; }
-  header a { margin-left: auto; font-size: 13px; color: var(--accent); text-decoration: none; }
-  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .stat {
-    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
-  }
-  .stat .label { font-size: 12px; color: var(--muted); }
-  .stat .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
-  section {
-    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-    padding: 20px; margin-bottom: 20px;
-  }
-  section h2 { font-size: 14px; margin-bottom: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; }
-  tr:last-child td { border-bottom: none; }
-  .pill {
-    display: inline-block; font-size: 11.5px; border-radius: 999px; padding: 2px 10px;
-  }
-  .pill.warn { background: var(--warn-soft); color: var(--warn); }
-  .pill.ok { background: var(--accent-soft); color: var(--accent); }
-  .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
-  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
-  .drop {
-    border: 2px dashed var(--border); border-radius: 12px; padding: 26px; text-align: center;
-    color: var(--muted); font-size: 13.5px; cursor: pointer; transition: all .15s;
-  }
-  .drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-  .upload-log { font-size: 12.5px; margin-top: 10px; line-height: 1.9; }
-  .upload-log .ok { color: #047857; }
-  .upload-log .err { color: #b91c1c; }
-  .btn {
-    border: 1px solid var(--border); background: var(--card); border-radius: 8px;
-    font-size: 12.5px; padding: 5px 12px; cursor: pointer; font-family: inherit;
-  }
-  .btn:hover { background: var(--accent-soft); }
-  .btn.danger:hover { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
-  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .section-head h2 { margin-bottom: 0; }
-</style>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/admin.css">
 </head>
 <body>
 <header>
-  <div class="logo">Q</div>
-  <h1>社内FAQ AI — 管理画面 <span id="tname" style="color:var(--muted);font-weight:400;font-size:13px"></span></h1>
-  <a href="/">← チャット画面へ</a>
-  <a href="#" id="logout" style="margin-left:14px">ログアウト</a>
+  <div class="brand-mark">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9.5l1.8 1.8L15 7.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <h1>管理画面<span class="tenant-name" id="tname"></span></h1>
+  <div class="header-actions">
+    <button class="theme-toggle" id="theme-btn" aria-label="テーマ切り替え">
+      <svg class="icon-sun" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.6 4.4l-1.5 1.5M5.9 14.1l-1.5 1.5M15.6 15.6l-1.5-1.5M5.9 5.9L4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg class="icon-moon" viewBox="0 0 20 20" fill="none"><path d="M17 11.2A7.2 7.2 0 018.8 3 7.2 7.2 0 1017 11.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </button>
+    <a class="btn btn-ghost" href="/">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M11 4L5 10l6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>チャット画面へ</span>
+    </a>
+    <button class="btn btn-ghost" id="logout">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M8 17H5a1 1 0 01-1-1V4a1 1 0 011-1h3M13 14l4-4-4-4M17 10H7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>ログアウト</span>
+    </button>
+  </div>
 </header>
+
 <main>
   <div class="cards">
-    <div class="stat"><div class="label">質問数（累計）</div><div class="value" id="s-total">–</div></div>
-    <div class="stat"><div class="label">回答率</div><div class="value" id="s-rate">–</div></div>
-    <div class="stat"><div class="label">未回答</div><div class="value" id="s-un">–</div></div>
-    <div class="stat"><div class="label">評価 👍 / 👎</div><div class="value" id="s-fb">–</div></div>
-    <div class="stat"><div class="label">登録ドキュメント</div><div class="value" id="s-docs">–</div></div>
+    <div class="stat card">
+      <div class="stat-icon" style="background:var(--primary-soft);color:var(--primary)">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v6A1.5 1.5 0 0115.5 13H9l-3 3v-3H4.5A1.5 1.5 0 013 11.5v-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label">質問数（累計）</div>
+      <div class="value skeleton" id="s-total">00</div>
+    </div>
+    <div class="stat card">
+      <div class="stat-icon" style="background:var(--success-soft);color:var(--success)">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10.5l3.5 3.5L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label">回答率</div>
+      <div class="value skeleton" id="s-rate">00%</div>
+    </div>
+    <div class="stat card">
+      <div class="stat-icon" style="background:var(--warning-soft);color:var(--warning)">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 7v4M10 13.5h.01M17.5 10a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label">未回答</div>
+      <div class="value skeleton" id="s-un">00</div>
+    </div>
+    <div class="stat card">
+      <div class="stat-icon" style="background:var(--surface-2);color:var(--text-2)">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M7 18H4.5a1 1 0 01-1-1v-6.5a1 1 0 011-1H7m0 8.5V9.5m0 8.5h6.3a2 2 0 001.94-1.52l1.1-4.5A1.5 1.5 0 0014.9 9.5H11l.6-3.4a1.4 1.4 0 00-2.5-1.05L7 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label">評価（良い / 悪い）</div>
+      <div class="value skeleton" id="s-fb">0 / 0</div>
+    </div>
+    <div class="stat card">
+      <div class="stat-icon" style="background:var(--surface-2);color:var(--text-2)">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M6 3.5h6l3 3v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-11.5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 3.5V7h3" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label">登録ドキュメント</div>
+      <div class="value skeleton" id="s-docs">0</div>
+    </div>
   </div>
 
-  <section>
-    <h2>📄 ドキュメントのアップロード</h2>
-    <div class="drop" id="drop">クリックしてファイルを選択、またはここにドラッグ&ドロップ<br>
-      <span style="font-size:11.5px">対応形式: .md / .txt / .pdf / .docx（同名ファイルは上書き）</span></div>
+  <section class="card">
+    <div class="section-head">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 13V6M10 6L6.5 9.5M10 6l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14v1.5a1 1 0 001 1h10a1 1 0 001-1V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        ドキュメントのアップロード
+      </h2>
+    </div>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 15V7M12 7l-3.5 3.5M12 7l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 17.5h12a2 2 0 002-2V13M4 13v2.5a2 2 0 002 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <div>クリックしてファイルを選択、またはここにドラッグ&ドロップ</div>
+      <div class="hint-small">対応形式: .md / .txt / .pdf / .docx（同名ファイルは上書き）</div>
+    </div>
     <input type="file" id="file" multiple accept=".md,.txt,.pdf,.docx" style="display:none">
     <div class="upload-log" id="upload-log"></div>
   </section>
 
-  <section>
-    <h2>⚠ 未回答の質問（資料追加の候補）</h2>
-    <div id="unanswered"></div>
+  <section class="card">
+    <div class="section-head">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 7v4M10 13.5h.01M17.5 10a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        未回答の質問（資料追加の候補）
+      </h2>
+    </div>
+    <div class="table-wrap" id="unanswered"></div>
     <div class="hint">ここに溜まった質問が「来月の改善」になります。対応する資料を追加して再取り込みしてください。月次レポートは <code>python3 -m app report --month YYYY-MM</code> で出力できます。</div>
   </section>
 
-  <section>
-    <h2>よくある質問 TOP</h2>
-    <div id="top"></div>
-  </section>
-
-  <section>
+  <section class="card">
     <div class="section-head">
-      <h2>登録済みドキュメント</h2>
-      <button class="btn" id="reindex">🔄 インデックス再構築</button>
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 15.5l3.5-5 3 3.5L15.5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        よくある質問 TOP
+      </h2>
     </div>
-    <div id="docs"></div>
+    <div class="table-wrap" id="top"></div>
   </section>
 
-  <section>
-    <h2>最近の質問ログ</h2>
-    <div id="recent"></div>
+  <section class="card">
+    <div class="section-head">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M6 3.5h6l3 3v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-11.5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 3.5V7h3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        登録済みドキュメント
+      </h2>
+      <div class="section-actions">
+        <button class="icon-btn" id="reindex" aria-label="インデックス再構築">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M16 10a6 6 0 10-1.76 4.24M16 10V6m0 4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap" id="docs"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 5.5V10l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/></svg>
+        最近の質問ログ
+      </h2>
+    </div>
+    <div class="table-wrap" id="recent"></div>
   </section>
 </main>
 
+<div id="toast-stack"></div>
+<script src="/assets/app.js"></script>
 <script>
+document.getElementById("theme-btn").addEventListener("click", () => Theme.toggle());
+
 function table(headers, rows) {
-  if (!rows.length) return '<div class="empty">データがありません</div>';
+  if (!rows.length) {
+    return `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-7z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span>データがありません</span>
+    </div>`;
+  }
   const th = headers.map(h => `<th>${h}</th>`).join('');
   const trs = rows.map(cells => '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>').join('');
   return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-const FB = { '1': '👍', '-1': '👎', '0': '' };
+const DOC_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M6 3.5h6l3 3v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-11.5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 3.5V7h3" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const TRASH_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M4.5 6h11M8 6V4.5a1 1 0 011-1h2a1 1 0 011 1V6m-6.5 0l.6 9.4a1 1 0 001 .9h5.8a1 1 0 001-.9L14.5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const PILL_STATUS = {
+  answered: '<span class="pill pill-success">回答</span>',
+  unanswered: '<span class="pill pill-warning">未回答</span>',
+};
+
+function unsetSkeleton(elm, text) {
+  elm.classList.remove('skeleton');
+  elm.textContent = text;
+}
 
 async function load() {
-  const meta = await (await fetch('/api/meta')).json();
-  if (meta.name) document.getElementById('tname').textContent = '｜' + meta.name;
-  const s = await (await fetch('/api/admin/stats')).json();
-  document.getElementById('s-total').textContent = s.total;
-  document.getElementById('s-rate').textContent = s.total ? Math.round(100 * s.answered / s.total) + '%' : '–';
-  document.getElementById('s-un').textContent = s.unanswered;
-  document.getElementById('s-fb').textContent = `${s.good} / ${s.bad}`;
-  document.getElementById('s-docs').textContent = s.documents.length;
+  try {
+    const meta = await (await fetch('/api/meta')).json();
+    if (meta.name) document.getElementById('tname').textContent = '｜' + meta.name;
+  } catch (e) { /* ignore */ }
+
+  let s;
+  try {
+    s = await (await fetch('/api/admin/stats')).json();
+  } catch (e) {
+    toast('データの取得に失敗しました', 'error');
+    return;
+  }
+
+  unsetSkeleton(document.getElementById('s-total'), String(s.total));
+  unsetSkeleton(document.getElementById('s-rate'), s.total ? Math.round(100 * s.answered / s.total) + '%' : '–');
+  unsetSkeleton(document.getElementById('s-un'), String(s.unanswered));
+  unsetSkeleton(document.getElementById('s-fb'), `${s.good} / ${s.bad}`);
+  unsetSkeleton(document.getElementById('s-docs'), String(s.documents.length));
+
   document.getElementById('unanswered').innerHTML =
     table(['質問', '日時'], s.unanswered_list.map(u => [esc(u.question), u.created_at]));
   document.getElementById('top').innerHTML =
-    table(['質問', '回数'], s.top_questions.map(t => [esc(t.question), t.count]));
+    table(['質問', '回数'], s.top_questions.map(t => [esc(t.question), `<span class="num">${t.count}</span>`]));
   document.getElementById('docs').innerHTML =
     table(['ドキュメント', 'チャンク数', ''], s.documents.map(d => [
-      esc(d.title), d.chunks,
-      `<button class="btn danger" onclick="deleteDoc(${d.id}, '${esc(d.title).replace(/'/g, '&#39;')}')">削除</button>`,
+      `<div class="doc-row-title">${DOC_ICON}<span>${esc(d.title)}</span></div>`,
+      `<span class="num">${d.chunks}</span>`,
+      `<button class="icon-btn danger" aria-label="削除" onclick="deleteDoc(${d.id}, '${esc(d.title).replace(/'/g, "\\'")}')">${TRASH_ICON}</button>`,
     ]));
   document.getElementById('recent').innerHTML =
     table(['質問', '状態', '評価', '日時'], s.recent.map(m => [
       esc(m.question),
-      m.answered ? '<span class="pill ok">回答</span>' : '<span class="pill warn">未回答</span>',
-      FB[String(m.feedback ?? 0)] || '–',
+      PILL_STATUS[m.answered ? 'answered' : 'unanswered'],
+      m.feedback === 1 ? '<span class="pill pill-success">良い</span>' : m.feedback === -1 ? '<span class="pill pill-danger">悪い</span>' : '<span class="pill pill-neutral">–</span>',
       m.created_at,
     ]));
 }
 
 async function deleteDoc(id, title) {
-  if (!confirm(`「${title}」を削除しますか？（チャンクも削除されます）`)) return;
-  await fetch('/api/admin/delete_doc', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
+  const ok = await confirmDialog({
+    title: 'ドキュメントを削除しますか？',
+    body: `「${title}」を削除します。関連するチャンクもすべて削除され、この操作は取り消せません。`,
   });
+  if (!ok) return;
+  try {
+    const res = await fetch('/api/admin/delete_doc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.ok) toast('ドキュメントを削除しました');
+    else toast('削除に失敗しました', 'error');
+  } catch (e) {
+    toast('削除に失敗しました: ' + e.message, 'error');
+  }
   load();
 }
 
-// --- upload (raw body + filename query; no multipart needed) ---
 const drop = document.getElementById('drop');
 const fileInput = document.getElementById('file');
 const uploadLog = document.getElementById('upload-log');
+const SPINNER_ICON = '<svg class="spin" viewBox="0 0 20 20" fill="none"><path d="M16 10a6 6 0 10-1.76 4.24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const OK_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M4 10.5l3.5 3.5L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ERR_ICON = '<svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 
 async function uploadFiles(files) {
   for (const f of files) {
-    const line = document.createElement('div');
-    line.textContent = `⏳ ${f.name} をアップロード中…`;
+    const line = el('div', 'upload-item');
+    line.innerHTML = SPINNER_ICON + `<span>${esc(f.name)} をアップロード中…</span>`;
     uploadLog.prepend(line);
     try {
       const res = await fetch('/api/admin/upload?filename=' + encodeURIComponent(f.name), {
@@ -179,15 +240,18 @@ async function uploadFiles(files) {
       });
       const data = await res.json();
       if (data.ok) {
-        line.className = 'ok';
-        line.textContent = `✓ ${data.title} — ${data.chunks} チャンク取り込み完了`;
+        line.className = 'upload-item ok';
+        line.innerHTML = OK_ICON + `<span>${esc(data.title)} — ${data.chunks} チャンク取り込み完了</span>`;
+        toast(`${data.title} を取り込みました`);
       } else {
-        line.className = 'err';
-        line.textContent = `✗ ${f.name}: ${data.error || '失敗しました'}`;
+        line.className = 'upload-item err';
+        line.innerHTML = ERR_ICON + `<span>${esc(f.name)}: ${esc(data.error || '失敗しました')}</span>`;
+        toast('アップロードに失敗しました', 'error');
       }
     } catch (e) {
-      line.className = 'err';
-      line.textContent = `✗ ${f.name}: ${e.message}`;
+      line.className = 'upload-item err';
+      line.innerHTML = ERR_ICON + `<span>${esc(f.name)}: ${esc(e.message)}</span>`;
+      toast('アップロードに失敗しました', 'error');
     }
   }
   load();
@@ -203,17 +267,24 @@ drop.addEventListener('drop', e => {
   uploadFiles([...e.dataTransfer.files]);
 });
 
-document.getElementById('logout').addEventListener('click', async e => {
-  e.preventDefault();
-  await fetch('/api/logout', { method: 'POST' });
-  location.href = '/login';
+document.getElementById('reindex').addEventListener('click', async () => {
+  const btn = document.getElementById('reindex');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/reload', { method: 'POST' });
+    const data = await res.json();
+    toast(`インデックスを再構築しました（${data.chunks} チャンク）`);
+  } catch (e) {
+    toast('再構築に失敗しました', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+  load();
 });
 
-document.getElementById('reindex').addEventListener('click', async () => {
-  const res = await fetch('/api/reload', { method: 'POST' });
-  const data = await res.json();
-  alert(`インデックスを再構築しました（${data.chunks} チャンク）`);
-  load();
+document.getElementById('logout').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
 });
 
 load();

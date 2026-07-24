@@ -23,6 +23,13 @@ from .config import DATA_DIR, WEB_DIR
 
 MAX_UPLOAD = 20 * 1024 * 1024  # 20MB
 ALLOWED_UPLOAD_EXTS = {".md", ".txt", ".pdf", ".docx"}
+ASSET_TYPES = {
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".woff2": "font/woff2",
+}
 SECRET_FILE = DATA_DIR / "secret.key"
 COOKIE_NAME = "sfa_session"
 
@@ -106,6 +113,9 @@ def serve(port: int = 8000, host: str = "127.0.0.1", tenant: str = "demo") -> No
             if not self._ip_ok():
                 self._json({"error": "forbidden"}, 403)
                 return
+            if self.path.startswith("/assets/"):
+                self._serve_asset(self.path[len("/assets/"):])
+                return
             if self.path == "/login":
                 self._send((WEB_DIR / "login.html").read_bytes(), "text/html; charset=utf-8")
                 return
@@ -149,6 +159,20 @@ def serve(port: int = 8000, host: str = "127.0.0.1", tenant: str = "demo") -> No
                 con.close()
             else:
                 self._json({"error": "not found"}, 404)
+
+        def _serve_asset(self, rel_path: str) -> None:
+            asset_root = (WEB_DIR / "assets").resolve()
+            candidate = (asset_root / rel_path).resolve()
+            if asset_root not in candidate.parents and candidate != asset_root:
+                self._json({"error": "not found"}, 404)
+                return
+            if not candidate.is_file():
+                self._json({"error": "not found"}, 404)
+                return
+            content_type = ASSET_TYPES.get(candidate.suffix.lower(), "application/octet-stream")
+            self._send(
+                candidate.read_bytes(), content_type, headers={"Cache-Control": "no-cache"}
+            )
 
         def _read_json(self) -> dict | None:
             try:
