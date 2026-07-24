@@ -9,11 +9,17 @@ Endpoints:
 """
 
 import json
+import re
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from . import db, llm
 from .answer import Engine
-from .config import WEB_DIR
+from .config import DATA_DIR, WEB_DIR
+
+MAX_UPLOAD = 20 * 1024 * 1024  # 20MB
+ALLOWED_UPLOAD_EXTS = {".md", ".txt", ".pdf", ".docx"}
 
 
 def serve(port: int = 8000, host: str = "127.0.0.1", tenant: str = "demo") -> None:
@@ -63,16 +69,83 @@ def serve(port: int = 8000, host: str = "127.0.0.1", tenant: str = "demo") -> No
             else:
                 self._json({"error": "not found"}, 404)
 
+        def _read_json(self) -> dict | None:
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                return json.loads(self.rfile.read(length) or b"{}")
+            except (ValueError, json.JSONDecodeError):
+                self._json({"error": "invalid JSON"}, 400)
+                return None
+
         def do_POST(self) -> None:
-            if self.path == "/api/ask":
-                try:
-                    length = int(self.headers.get("Content-Length") or 0)
-                    payload = json.loads(self.rfile.read(length) or b"{}")
-                except (ValueError, json.JSONDecodeError):
-                    self._json({"error": "invalid JSON"}, 400)
+            path = urllib.parse.urlparse(self.path)
+            if path.path == "/api/ask":
+                payload = self._read_json()
+                if payload is None:
                     return
-                self._json(engine.ask(str(payload.get("question", ""))))
-            elif self.path == "/api/reload":
+                history = payload.get("history") or []
+                if not isinstance(history, list):
+                    history = []
+                self._json(engine.ask(str(payload.get("question", "")), history=history))
+            elif path.path == "/api/feedback":
+                payload = self._read_json()
+                if payload is None:
+                    return
+                try:
+                    message_id = int(payload.get("message_id"))
+                    rating = int(payload.get("rating"))
+                except (TypeError, ValueError):
+                    self._json({"error": "message_id and rating (1 or -1) required"}, 400)
+                    return
+                con = db.connect()
+                ok = db.set_feedback(con, tenant, message_id, rating)
+                con.close()
+                self._json({"ok": ok})
+            elif path.path == "/api/admin/upload":
+                query = urllib.parse.parse_qs(path.query)
+                raw_name = (query.get("filename") or [""])[0]
+                filename = Path(urllib.parse.unquote(raw_name)).name  # strip any path parts
+                filename = re.sub(r'[\\/:*?"<>|]', "_", filename)
+                ext = Path(filename).suffix.lower()
+                if not filename or ext not in ALLOWED_UPLOAD_EXTS:
+                    self._json({"error": f"対応形式: {', '.join(sorted(ALLOWED_UPLOAD_EXTS))}"}, 400)
+                    return
+                length = int(self.headers.get("Content-Length") or 0)
+                if length <= 0 or length > MAX_UPLOAD:
+                    self._json({"error": "ファイルサイズは20MBまでです"}, 400)
+                    return
+                body = self.rfile.read(length)
+                upload_dir = DATA_DIR / "uploads" / tenant
+                upload_dir.mkdir(parents=True, exist_ok=True)
+                dest = upload_dir / filename
+                dest.write_bytes(body)
+                from .ingest import ingest_file
+
+                try:
+                    result = ingest_file(dest, tenant, replace=True)
+                except Exception as e:
+                    self._json({"error": f"取り込みに失敗しました: {e}"}, 500)
+                    return
+                if result is None:
+                    self._json({"error": "このファイルを読み取れませんでした（PDF/Wordは .venv の Python で起動してください）"}, 422)
+                    return
+                engine.reload()
+                self._json({"ok": True, **result, "chunks_total": len(engine.chunks)})
+            elif path.path == "/api/admin/delete_doc":
+                payload = self._read_json()
+                if payload is None:
+                    return
+                try:
+                    doc_id = int(payload.get("id"))
+                except (TypeError, ValueError):
+                    self._json({"error": "id required"}, 400)
+                    return
+                con = db.connect()
+                ok = db.delete_document(con, tenant, doc_id)
+                con.close()
+                engine.reload()
+                self._json({"ok": ok, "chunks_total": len(engine.chunks)})
+            elif path.path == "/api/reload":
                 engine.reload()
                 self._json({"ok": True, "chunks": len(engine.chunks)})
             else:

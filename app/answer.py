@@ -45,19 +45,28 @@ class Engine:
                 pass  # vectors are an enhancement; keyword results stand alone
         return hits, coverage
 
-    def ask(self, question: str, log: bool = True) -> dict:
+    def ask(self, question: str, log: bool = True, history: list[dict] | None = None) -> dict:
         question = (question or "").strip()
         if not question:
             return {"answer": "質問を入力してください。", "sources": [], "mode": "none", "answered": False}
+        history = [h for h in (history or []) if isinstance(h, dict) and h.get("q")][-3:]
 
         hits, coverage = self._retrieve(question)
+        # Follow-up questions (「それは誰に申請するの？」) carry little vocabulary
+        # of their own — retry retrieval with the previous question prepended.
+        if history and coverage < COVERAGE_THRESHOLD:
+            combined = f"{history[-1]['q']}。{question}"
+            hits2, coverage2 = self._retrieve(combined)
+            if coverage2 > coverage:
+                hits, coverage = hits2, coverage2
+
         gate = COVERAGE_THRESHOLD if llm.provider() == "mock" else HARD_FLOOR
         if not hits or coverage < gate:
             result = {"answer": REFUSAL, "sources": [], "mode": "refusal", "answered": False}
         else:
             contexts = [h[0] for h in hits[:TOP_CONTEXTS]]
             try:
-                text, mode = llm.generate(question, contexts)
+                text, mode = llm.generate(question, contexts, history)
             except llm.LLMError as e:
                 text = f"（AI呼び出しに失敗したため、関連箇所の抜粋を表示します。エラー: {e}）\n\n" + llm.mock_answer(contexts)
                 mode = "extract"
@@ -72,7 +81,7 @@ class Engine:
 
         if log:
             con = db.connect()
-            db.log_message(
+            result["message_id"] = db.log_message(
                 con, self.tenant, question,
                 result["answer"], result["answered"], result["mode"], result["sources"],
             )

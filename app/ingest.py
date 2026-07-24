@@ -34,6 +34,37 @@ def read_file(path: Path) -> str | None:
     return None
 
 
+def ingest_file(path: Path, tenant: str, replace: bool = False) -> dict | None:
+    """Ingest a single file. With replace=True, prior versions of the same
+    file (matched by filename or derived title) are removed first — this is
+    what the admin-console upload uses. Returns {title, chunks} or None."""
+    text = read_file(path)
+    if text is None or not text.strip():
+        return None
+    title = doc_title(text, path.stem)
+    chunks = chunk_text(text)
+    if not chunks:
+        return None
+
+    vectors: list[bytes | None] = [None] * len(chunks)
+    if embeddings.available():
+        try:
+            vecs = embeddings.embed([c["content"] for c in chunks])
+            vectors = [embeddings.pack(v) for v in vecs]
+        except Exception as e:
+            print(f"  ⚠ 埋め込み生成に失敗（キーワード検索のみで動作します）: {e}")
+
+    con = db.connect()
+    if replace:
+        db.delete_documents_by_source(con, tenant, path.name, title)
+    document_id = db.add_document(con, tenant, title, str(path))
+    for chunk, vec in zip(chunks, vectors):
+        db.add_chunk(con, tenant, document_id, chunk["section"], chunk["content"], vec)
+    con.commit()
+    con.close()
+    return {"title": title, "chunks": len(chunks)}
+
+
 def ingest_path(target: Path, tenant: str = "demo", reset: bool = False) -> tuple[int, int]:
     con = db.connect()
     if reset:

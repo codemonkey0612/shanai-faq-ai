@@ -31,7 +31,16 @@ python3 -m app serve --tenant <表示されたID>        # 顧客名・専用質
 python3 -m app report --tenant demo --month 2026-07
 ```
 
-**管理画面**: サーバー起動中に http://localhost:8000/admin — 質問数・回答率・未回答キュー・ドキュメント一覧・最近のログ。
+**管理画面**: サーバー起動中に http://localhost:8000/admin — 質問数・回答率・👍/👎評価・未回答キュー・**ドキュメントのアップロード（ドラッグ&ドロップ、同名は上書き）・削除・インデックス再構築**・最近のログ。
+
+**チャット画面の機能**: 出典チップ・回答への👍/👎フィードバック・会話の文脈を踏まえたフォローアップ質問（「それは誰に申請するの？」が通じます）・「＋新しい会話」ボタン。
+
+**PDF/Word対応**: プロジェクト内の仮想環境で起動してください:
+
+```bash
+.venv/bin/python3 -m app serve        # PDF/Word取り込み対応（pypdf + python-docx導入済み）
+# .venvを作り直す場合: python3 -m venv .venv && .venv/bin/pip install pypdf python-docx
+```
 
 ## Answer modes
 
@@ -80,11 +89,11 @@ eval/questions.jsonl  # 17 test questions incl. refusal cases
 
 ## Production roadmap (in order)
 
-1. **Real LLM key** — set `ANTHROPIC_API_KEY` (or Azure OpenAI via `OPENAI_BASE_URL`) → AI answers
+1. ~~Real LLM key~~ ✓ / ~~admin console + document management UI~~ ✓ / ~~monthly report~~ ✓ / ~~PDF/Word~~ ✓ / ~~feedback + follow-up conversations~~ ✓
 2. **Embeddings on** (`EMBEDDINGS_ENABLED=1`) → better recall on paraphrased questions
 3. **OCR for scanned PDFs** (Azure Document Intelligence) — many SME documents are scans
-4. **Postgres migration** — schema maps 1:1; pgvector for vectors, PGroonga for keyword search
-5. **Auth + admin console** — per-tenant login, IP allowlist, document management UI, monthly unanswered-questions report
+4. **Auth** — per-tenant login + IP allowlist (currently local/demo use only — do not expose to the internet as-is)
+5. **Postgres migration** — schema maps 1:1; pgvector for vectors, PGroonga for keyword search
 6. **Chat-tool integrations** — LINE WORKS / Chatwork / Teams webhook delivery
 7. **Deploy** — single container on Azure Container Apps (Japan East) for the 国内データ保存 story
 

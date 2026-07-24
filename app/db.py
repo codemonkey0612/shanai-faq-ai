@@ -46,7 +46,13 @@ def connect() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys = ON")
     con.executescript(SCHEMA)
+    try:  # migration: feedback column (👍=1 / 👎=-1 / none=0)
+        con.execute("ALTER TABLE messages ADD COLUMN feedback INTEGER NOT NULL DEFAULT 0")
+        con.commit()
+    except sqlite3.OperationalError:
+        pass  # column already exists
     return con
 
 
@@ -98,18 +104,49 @@ def log_message(
     answered: bool,
     mode: str,
     sources: list[dict],
-) -> None:
-    con.execute(
+) -> int:
+    cur = con.execute(
         "INSERT INTO messages(tenant_id, question, answer, answered, mode, sources)"
         " VALUES (?, ?, ?, ?, ?, ?)",
         (tenant, question, answer, int(answered), mode, json.dumps(sources, ensure_ascii=False)),
     )
     con.commit()
+    return cur.lastrowid
+
+
+def set_feedback(con: sqlite3.Connection, tenant: str, message_id: int, rating: int) -> bool:
+    cur = con.execute(
+        "UPDATE messages SET feedback = ? WHERE id = ? AND tenant_id = ?",
+        (max(-1, min(1, rating)), message_id, tenant),
+    )
+    con.commit()
+    return cur.rowcount > 0
+
+
+def delete_document(con: sqlite3.Connection, tenant: str, document_id: int) -> bool:
+    con.execute(
+        "DELETE FROM chunks WHERE document_id = ? AND tenant_id = ?", (document_id, tenant)
+    )
+    cur = con.execute(
+        "DELETE FROM documents WHERE id = ? AND tenant_id = ?", (document_id, tenant)
+    )
+    con.commit()
+    return cur.rowcount > 0
+
+
+def delete_documents_by_source(con: sqlite3.Connection, tenant: str, basename: str, title: str) -> None:
+    """Remove prior versions of a re-uploaded file (matched by filename or title)."""
+    rows = con.execute(
+        "SELECT id, path FROM documents WHERE tenant_id = ? AND (title = ? OR path LIKE ?)",
+        (tenant, title, f"%/{basename}"),
+    ).fetchall()
+    for r in rows:
+        delete_document(con, tenant, r["id"])
 
 
 def recent_messages(con: sqlite3.Connection, tenant: str, limit: int = 50) -> list[dict]:
     rows = con.execute(
-        "SELECT question, answer, answered, mode, sources, created_at"
+        "SELECT id, question, answer, answered, mode, sources, feedback, created_at"
         " FROM messages WHERE tenant_id = ? ORDER BY id DESC LIMIT ?",
         (tenant, limit),
     ).fetchall()
@@ -147,7 +184,8 @@ def stats(con: sqlite3.Connection, tenant: str, month: str | None = None) -> dic
         where += " AND created_at LIKE ?"
         params.append(f"{month}%")
     row = con.execute(
-        f"SELECT COUNT(*) AS total, COALESCE(SUM(answered), 0) AS answered"
+        f"SELECT COUNT(*) AS total, COALESCE(SUM(answered), 0) AS answered,"
+        f" COALESCE(SUM(feedback = 1), 0) AS good, COALESCE(SUM(feedback = -1), 0) AS bad"
         f" FROM messages WHERE {where}",
         params,
     ).fetchone()
@@ -157,7 +195,7 @@ def stats(con: sqlite3.Connection, tenant: str, month: str | None = None) -> dic
         params,
     ).fetchall()
     docs = con.execute(
-        "SELECT d.title, COUNT(c.id) AS chunks FROM documents d"
+        "SELECT d.id, d.title, COUNT(c.id) AS chunks FROM documents d"
         " LEFT JOIN chunks c ON c.document_id = d.id"
         " WHERE d.tenant_id = ? GROUP BY d.id ORDER BY d.id",
         (tenant,),
@@ -166,8 +204,10 @@ def stats(con: sqlite3.Connection, tenant: str, month: str | None = None) -> dic
         "total": row["total"],
         "answered": row["answered"],
         "unanswered": row["total"] - row["answered"],
+        "good": row["good"],
+        "bad": row["bad"],
         "top_questions": [{"question": r["question"], "count": r["n"]} for r in top],
-        "documents": [{"title": r["title"], "chunks": r["chunks"]} for r in docs],
+        "documents": [{"id": r["id"], "title": r["title"], "chunks": r["chunks"]} for r in docs],
     }
 
 

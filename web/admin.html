@@ -47,6 +47,22 @@
   .pill.ok { background: var(--accent-soft); color: var(--accent); }
   .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+  .drop {
+    border: 2px dashed var(--border); border-radius: 12px; padding: 26px; text-align: center;
+    color: var(--muted); font-size: 13.5px; cursor: pointer; transition: all .15s;
+  }
+  .drop.over, .drop:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .upload-log { font-size: 12.5px; margin-top: 10px; line-height: 1.9; }
+  .upload-log .ok { color: #047857; }
+  .upload-log .err { color: #b91c1c; }
+  .btn {
+    border: 1px solid var(--border); background: var(--card); border-radius: 8px;
+    font-size: 12.5px; padding: 5px 12px; cursor: pointer; font-family: inherit;
+  }
+  .btn:hover { background: var(--accent-soft); }
+  .btn.danger:hover { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-head h2 { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -60,8 +76,17 @@
     <div class="stat"><div class="label">質問数（累計）</div><div class="value" id="s-total">–</div></div>
     <div class="stat"><div class="label">回答率</div><div class="value" id="s-rate">–</div></div>
     <div class="stat"><div class="label">未回答</div><div class="value" id="s-un">–</div></div>
+    <div class="stat"><div class="label">評価 👍 / 👎</div><div class="value" id="s-fb">–</div></div>
     <div class="stat"><div class="label">登録ドキュメント</div><div class="value" id="s-docs">–</div></div>
   </div>
+
+  <section>
+    <h2>📄 ドキュメントのアップロード</h2>
+    <div class="drop" id="drop">クリックしてファイルを選択、またはここにドラッグ&ドロップ<br>
+      <span style="font-size:11.5px">対応形式: .md / .txt / .pdf / .docx（同名ファイルは上書き）</span></div>
+    <input type="file" id="file" multiple accept=".md,.txt,.pdf,.docx" style="display:none">
+    <div class="upload-log" id="upload-log"></div>
+  </section>
 
   <section>
     <h2>⚠ 未回答の質問（資料追加の候補）</h2>
@@ -75,7 +100,10 @@
   </section>
 
   <section>
-    <h2>登録済みドキュメント</h2>
+    <div class="section-head">
+      <h2>登録済みドキュメント</h2>
+      <button class="btn" id="reindex">🔄 インデックス再構築</button>
+    </div>
     <div id="docs"></div>
   </section>
 
@@ -93,6 +121,7 @@ function table(headers, rows) {
   return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+const FB = { '1': '👍', '-1': '👎', '0': '' };
 
 async function load() {
   const meta = await (await fetch('/api/meta')).json();
@@ -101,20 +130,85 @@ async function load() {
   document.getElementById('s-total').textContent = s.total;
   document.getElementById('s-rate').textContent = s.total ? Math.round(100 * s.answered / s.total) + '%' : '–';
   document.getElementById('s-un').textContent = s.unanswered;
+  document.getElementById('s-fb').textContent = `${s.good} / ${s.bad}`;
   document.getElementById('s-docs').textContent = s.documents.length;
   document.getElementById('unanswered').innerHTML =
     table(['質問', '日時'], s.unanswered_list.map(u => [esc(u.question), u.created_at]));
   document.getElementById('top').innerHTML =
     table(['質問', '回数'], s.top_questions.map(t => [esc(t.question), t.count]));
   document.getElementById('docs').innerHTML =
-    table(['ドキュメント', 'チャンク数'], s.documents.map(d => [esc(d.title), d.chunks]));
+    table(['ドキュメント', 'チャンク数', ''], s.documents.map(d => [
+      esc(d.title), d.chunks,
+      `<button class="btn danger" onclick="deleteDoc(${d.id}, '${esc(d.title).replace(/'/g, '&#39;')}')">削除</button>`,
+    ]));
   document.getElementById('recent').innerHTML =
-    table(['質問', '状態', '日時'], s.recent.map(m => [
+    table(['質問', '状態', '評価', '日時'], s.recent.map(m => [
       esc(m.question),
       m.answered ? '<span class="pill ok">回答</span>' : '<span class="pill warn">未回答</span>',
+      FB[String(m.feedback ?? 0)] || '–',
       m.created_at,
     ]));
 }
+
+async function deleteDoc(id, title) {
+  if (!confirm(`「${title}」を削除しますか？（チャンクも削除されます）`)) return;
+  await fetch('/api/admin/delete_doc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  });
+  load();
+}
+
+// --- upload (raw body + filename query; no multipart needed) ---
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+const uploadLog = document.getElementById('upload-log');
+
+async function uploadFiles(files) {
+  for (const f of files) {
+    const line = document.createElement('div');
+    line.textContent = `⏳ ${f.name} をアップロード中…`;
+    uploadLog.prepend(line);
+    try {
+      const res = await fetch('/api/admin/upload?filename=' + encodeURIComponent(f.name), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: await f.arrayBuffer(),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        line.className = 'ok';
+        line.textContent = `✓ ${data.title} — ${data.chunks} チャンク取り込み完了`;
+      } else {
+        line.className = 'err';
+        line.textContent = `✗ ${f.name}: ${data.error || '失敗しました'}`;
+      }
+    } catch (e) {
+      line.className = 'err';
+      line.textContent = `✗ ${f.name}: ${e.message}`;
+    }
+  }
+  load();
+}
+
+drop.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { uploadFiles([...fileInput.files]); fileInput.value = ''; });
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  drop.classList.remove('over');
+  uploadFiles([...e.dataTransfer.files]);
+});
+
+document.getElementById('reindex').addEventListener('click', async () => {
+  const res = await fetch('/api/reload', { method: 'POST' });
+  const data = await res.json();
+  alert(`インデックスを再構築しました（${data.chunks} チャンク）`);
+  load();
+});
+
 load();
 </script>
 </body>

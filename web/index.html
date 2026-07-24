@@ -52,6 +52,21 @@
     border-radius: 999px; padding: 3px 11px;
   }
   .mode-tag { display: inline-block; font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .feedback { margin-top: 10px; display: flex; gap: 6px; align-items: center; }
+  .fb-btn {
+    border: 1px solid var(--border); background: var(--card); border-radius: 999px;
+    font-size: 13px; padding: 3px 10px; cursor: pointer; transition: all .15s;
+  }
+  .fb-btn:hover { background: var(--accent-soft); }
+  .fb-btn.selected { background: var(--accent-soft); border-color: var(--accent); }
+  .fb-btn:disabled { cursor: default; opacity: .55; }
+  .fb-thanks { font-size: 11.5px; color: var(--muted); }
+  .header-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .header-btn {
+    font-size: 12.5px; color: var(--accent); background: var(--accent-soft);
+    border: none; border-radius: 999px; padding: 6px 14px; cursor: pointer;
+    text-decoration: none;
+  }
   .welcome {
     background: var(--card); border: 1px solid var(--border); border-radius: 14px;
     padding: 22px; margin-bottom: 20px;
@@ -104,6 +119,10 @@
     <h1>社内FAQ AI</h1>
     <div class="sub" id="subtitle">社内規程・マニュアルに基づいて回答します</div>
   </div>
+  <div class="header-actions">
+    <button class="header-btn" id="newchat">＋ 新しい会話</button>
+    <a class="header-btn" href="/admin">管理画面</a>
+  </div>
 </header>
 
 <div id="chat"><div class="inner" id="messages">
@@ -154,6 +173,29 @@ function addTyping() {
   return row;
 }
 
+function addFeedback(bubble, messageId) {
+  const box = el('div', 'feedback');
+  const good = el('button', 'fb-btn', '👍');
+  const bad = el('button', 'fb-btn', '👎');
+  async function send(rating, btn) {
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: messageId, rating }),
+      });
+      btn.classList.add('selected');
+      good.disabled = bad.disabled = true;
+      box.appendChild(el('span', 'fb-thanks', 'フィードバックありがとうございます'));
+    } catch (e) { /* ignore */ }
+  }
+  good.addEventListener('click', () => send(1, good));
+  bad.addEventListener('click', () => send(-1, bad));
+  box.appendChild(good);
+  box.appendChild(bad);
+  bubble.appendChild(box);
+}
+
 function addBot(data) {
   const row = el('div', 'row bot');
   const bubble = el('div', 'bubble');
@@ -165,10 +207,13 @@ function addBot(data) {
   }
   const modeLabels = { ai: 'AI回答', extract: '抜粋モード（APIキー設定でAI回答に切替）', refusal: '' };
   if (modeLabels[data.mode]) bubble.appendChild(el('div', 'mode-tag', modeLabels[data.mode]));
+  if (data.message_id) addFeedback(bubble, data.message_id);
   row.appendChild(bubble);
   messages.appendChild(row);
   chat.scrollTop = chat.scrollHeight;
 }
+
+let history = [];  // recent {q, a} pairs sent for follow-up context
 
 async function ask(text) {
   const question = (text || input.value).trim();
@@ -181,11 +226,15 @@ async function ask(text) {
     const res = await fetch('/api/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, history: history.slice(-3) }),
     });
     const data = await res.json();
     typing.remove();
     addBot(data);
+    if (data.answered) {
+      history.push({ q: question, a: data.answer });
+      if (history.length > 6) history = history.slice(-6);
+    }
   } catch (e) {
     typing.remove();
     addBot({ answer: 'エラーが発生しました: ' + e.message, sources: [], mode: '' });
@@ -194,6 +243,12 @@ async function ask(text) {
     input.focus();
   }
 }
+
+document.getElementById('newchat').addEventListener('click', () => {
+  history = [];
+  [...messages.children].forEach(c => { if (!c.classList.contains('welcome')) c.remove(); });
+  input.focus();
+});
 
 const DEFAULT_QUESTIONS = [
   '有給休暇は何日前までに申請すればいいですか？',

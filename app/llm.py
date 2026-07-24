@@ -40,11 +40,21 @@ SYSTEM_PROMPT = (
 )
 
 
-def build_prompt(question: str, contexts: list[dict]) -> str:
-    parts = ["## 社内資料の抜粋\n"]
+def build_prompt(question: str, contexts: list[dict], history: list[dict] | None = None) -> str:
+    parts = []
+    if history:
+        parts.append("## 直前の会話（文脈の参考）\n")
+        for h in history[-3:]:
+            answer = h.get("a", "")
+            if len(answer) > 200:
+                answer = answer[:200] + "…"
+            parts.append(f"Q: {h.get('q', '')}\nA: {answer}\n")
+    parts.append("## 社内資料の抜粋\n")
     for i, c in enumerate(contexts, 1):
         parts.append(f"[{i}]【{c['doc_title']}　{c['section']}】\n{c['content']}\n")
     parts.append(f"\n## 質問\n{question}")
+    if history:
+        parts.append("（直前の会話の続きの質問である可能性があります。文脈を考慮して回答してください。）")
     return "\n".join(parts)
 
 
@@ -110,7 +120,9 @@ def generate_raw(prompt: str, system: str = "") -> tuple[str, str]:
     raise LLMError("no API key configured (mock mode)")
 
 
-def generate(question: str, contexts: list[dict]) -> tuple[str, str]:
+def generate(
+    question: str, contexts: list[dict], history: list[dict] | None = None
+) -> tuple[str, str]:
     """Return (answer_text, mode) where mode is 'ai' or 'extract'."""
     p = provider()
     if p == "anthropic":
@@ -120,7 +132,7 @@ def generate(question: str, contexts: list[dict]) -> tuple[str, str]:
                 "model": config.ANTHROPIC_MODEL,
                 "max_tokens": 1024,
                 "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": build_prompt(question, contexts)}],
+                "messages": [{"role": "user", "content": build_prompt(question, contexts, history)}],
             },
             {"x-api-key": config.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01"},
         )
@@ -135,7 +147,7 @@ def generate(question: str, contexts: list[dict]) -> tuple[str, str]:
                 "model": config.OPENAI_MODEL,
                 "messages": [
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": build_prompt(question, contexts)},
+                    {"role": "user", "content": build_prompt(question, contexts, history)},
                 ],
             },
             {"Authorization": f"Bearer {config.OPENAI_API_KEY}"},
