@@ -1,0 +1,9 @@
+app.shanaiai.com {
+	reverse_proxy 127.0.0.1:8000
+}
+
+# Bare domain reserved for the future landing page (Vercel).
+# Temporary redirect so it doesn't 404 in the meantime.
+shanaiai.com, www.shanaiai.com {
+	redir https://app.shanaiai.com{uri} permanent
+}

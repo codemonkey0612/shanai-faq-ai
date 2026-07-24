@@ -1,0 +1,19 @@
+[Unit]
+Description=Shanai FAQ AI (社内FAQ AI)
+After=network.target
+
+[Service]
+Type=simple
+User=bugsmile
+WorkingDirectory=/home/bugsmile/dev/idea/shanai-faq-ai
+ExecStart=/home/bugsmile/dev/idea/shanai-faq-ai/.venv/bin/python3 -m app serve --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+
+# Hardening: the service can only write inside its own data/ dir
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/bugsmile/dev/idea/shanai-faq-ai/data
+
+[Install]
+WantedBy=multi-user.target
