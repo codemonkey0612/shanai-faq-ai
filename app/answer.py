@@ -6,10 +6,10 @@ letting the LLM guess. Unanswered questions are the monthly improvement
 report shown to the customer.
 """
 
-from . import db, embeddings, llm
+from . import db, embeddings, llm, smalltalk
 from .search import SearchIndex, rrf_merge
 
-REFUSAL = "社内資料からは確認できませんでした。総務部までお問い合わせください。"
+REFUSAL = "すみません、その内容については今の社内資料からは確認できませんでした。詳しいことは総務部に聞いてみてくださいね。"
 # Two-stage refusal gate:
 #  - below HARD_FLOOR: refuse without calling the LLM (obvious junk, saves tokens)
 #  - between the two: only the LLM may answer — its prompt requires refusal when
@@ -49,6 +49,18 @@ class Engine:
         question = (question or "").strip()
         if not question:
             return {"answer": "質問を入力してください。", "sources": [], "mode": "none", "answered": False}
+
+        category = smalltalk.classify(question)
+        if category:
+            result = {"answer": smalltalk.reply(category), "sources": [], "mode": "smalltalk", "answered": True}
+            if log:
+                con = db.connect()
+                result["message_id"] = db.log_message(
+                    con, self.tenant, question, result["answer"], True, "smalltalk", []
+                )
+                con.close()
+            return result
+
         history = [h for h in (history or []) if isinstance(h, dict) and h.get("q")][-3:]
 
         hits, coverage = self._retrieve(question)
