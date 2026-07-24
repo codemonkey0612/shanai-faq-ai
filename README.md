@@ -87,15 +87,41 @@ sample_docs/     # 架空の会社「株式会社サンプル商事」の規程�
 eval/questions.jsonl  # 17 test questions incl. refusal cases
 ```
 
+## Access control（公開時は必須）
+
+`.env` で設定。両方未設定なら認証なしのローカルデモモードで動作します。
+
+```
+ACCESS_CODE=社員に配る共有コード       # チャット画面のログインに必要
+ADMIN_PASSWORD=管理者パスワード        # /admin のログインに必要
+IP_ALLOWLIST=203.0.113.,198.51.100.7  # 任意: 許可IPプレフィックス
+```
+
+- ログインは `/login`（署名付きHttpOnlyクッキー、30日有効。`data/secret.key` が署名鍵）
+- `ACCESS_CODE` だけ設定した場合、管理画面は安全側に倒してロックされます（`ADMIN_PASSWORD` も設定してください）
+- リバースプロキシ（nginx等）の背後では TLS 終端とアクセスログをプロキシ側で
+
+## Deploy
+
+```bash
+docker build -t shanai-faq-ai .
+docker run -d -p 8000:8000 -v faqai-data:/srv/data --env-file .env shanai-faq-ai
+# 初回のみ: ドキュメント取り込み
+docker exec -it <container> python3 -m app ingest sample_docs --reset
+```
+
+Azure Container Apps（Japan East、国内データ保存の営業トークに合致）へは:
+ACR に push → Container Apps 作成 → `data` 用に Azure Files ボリュームをマウント → 環境変数を設定。
+どの VPS でも `docker run` 一発で動きます。
+
 ## Production roadmap (in order)
 
-1. ~~Real LLM key~~ ✓ / ~~admin console + document management UI~~ ✓ / ~~monthly report~~ ✓ / ~~PDF/Word~~ ✓ / ~~feedback + follow-up conversations~~ ✓
+1. ~~LLM key / admin console / monthly report / PDF・Word / feedback / follow-up conversations / auth / Dockerfile~~ ✓
 2. **Embeddings on** (`EMBEDDINGS_ENABLED=1`) → better recall on paraphrased questions
 3. **OCR for scanned PDFs** (Azure Document Intelligence) — many SME documents are scans
-4. **Auth** — per-tenant login + IP allowlist (currently local/demo use only — do not expose to the internet as-is)
-5. **Postgres migration** — schema maps 1:1; pgvector for vectors, PGroonga for keyword search
-6. **Chat-tool integrations** — LINE WORKS / Chatwork / Teams webhook delivery
-7. **Deploy** — single container on Azure Container Apps (Japan East) for the 国内データ保存 story
+4. **Postgres migration** — schema maps 1:1; pgvector for vectors, PGroonga for keyword search
+5. **Chat-tool integrations** — LINE WORKS / Chatwork / Teams webhook delivery
+6. **HTTPS + domain** — reverse proxy or Container Apps ingress; then invite the first pilot customer
 
 ## Notes
 

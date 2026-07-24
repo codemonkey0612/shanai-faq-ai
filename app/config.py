@@ -39,3 +39,8 @@ OPENAI_MODEL = env("OPENAI_MODEL", "gpt-4o-mini")
 # Optional vector search (needs an OpenAI-compatible embeddings API)
 EMBEDDINGS_ENABLED = env("EMBEDDINGS_ENABLED", "0") == "1"
 EMBEDDING_MODEL = env("EMBEDDING_MODEL", "text-embedding-3-small")
+
+# Access control (all optional; unset = open, for local demos)
+ACCESS_CODE = env("ACCESS_CODE")          # shared code for the chat UI
+ADMIN_PASSWORD = env("ADMIN_PASSWORD")    # password for /admin
+IP_ALLOWLIST = env("IP_ALLOWLIST")        # comma-separated IP prefixes

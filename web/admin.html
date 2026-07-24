@@ -70,6 +70,7 @@
   <div class="logo">Q</div>
   <h1>社内FAQ AI — 管理画面 <span id="tname" style="color:var(--muted);font-weight:400;font-size:13px"></span></h1>
   <a href="/">← チャット画面へ</a>
+  <a href="#" id="logout" style="margin-left:14px">ログアウト</a>
 </header>
 <main>
   <div class="cards">
@@ -200,6 +201,12 @@ drop.addEventListener('drop', e => {
   e.preventDefault();
   drop.classList.remove('over');
   uploadFiles([...e.dataTransfer.files]);
+});
+
+document.getElementById('logout').addEventListener('click', async e => {
+  e.preventDefault();
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
 });
 
 document.getElementById('reindex').addEventListener('click', async () => {

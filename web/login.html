@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社内FAQ AI — ログイン</title>
+<style>
+  :root {
+    --accent: #2f6fed; --accent-soft: #eaf1fe; --bg: #f4f6f9; --card: #fff;
+    --text: #1f2937; --muted: #6b7280; --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 36px 32px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    text-align: center;
+  }
+  .logo {
+    width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px;
+    margin: 0 auto 16px;
+  }
+  h1 { font-size: 17px; margin-bottom: 6px; }
+  p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.7; }
+  input {
+    width: 100%; font-size: 15px; font-family: inherit; text-align: center;
+    border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    outline: none; margin-bottom: 12px;
+  }
+  input:focus { border-color: var(--accent); }
+  button {
+    width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    padding: 12px; font-size: 14.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  button:disabled { opacity: .5; }
+  .error { color: #b91c1c; font-size: 12.5px; margin-top: 12px; min-height: 18px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Q</div>
+  <h1>社内FAQ AI</h1>
+  <p>アクセスコードを入力してください。<br>（管理者の方は管理パスワードを入力）</p>
+  <form id="form">
+    <input id="code" type="password" placeholder="アクセスコード" autocomplete="current-password" autofocus>
+    <button id="btn" type="submit">ログイン</button>
+  </form>
+  <div class="error" id="error"></div>
+</div>
+<script>
+const form = document.getElementById('form');
+const codeInput = document.getElementById('code');
+const btn = document.getElementById('btn');
+const error = document.getElementById('error');
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const code = codeInput.value.trim();
+  if (!code) return;
+  btn.disabled = true;
+  error.textContent = '';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      location.href = data.role === 'admin' ? '/admin' : '/';
+    } else {
+      error.textContent = data.error || 'ログインに失敗しました';
+    }
+  } catch (err) {
+    error.textContent = 'エラーが発生しました: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
