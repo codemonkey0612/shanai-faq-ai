@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社内FAQ AI — デモ</title>
+<style>
+  :root {
+    --accent: #2f6fed;
+    --accent-soft: #eaf1fe;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 22px; display: flex; align-items: center; gap: 12px;
+  }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--accent);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  header h1 { font-size: 16px; font-weight: 700; }
+  header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  #chat {
+    flex: 1; overflow-y: auto; padding: 24px 0 12px;
+  }
+  .inner { max-width: 780px; margin: 0 auto; padding: 0 20px; }
+  .row { display: flex; margin-bottom: 16px; }
+  .row.user { justify-content: flex-end; }
+  .bubble {
+    max-width: 82%; padding: 12px 16px; border-radius: 14px;
+    font-size: 14.5px; line-height: 1.75; white-space: pre-wrap; word-break: break-word;
+  }
+  .user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .bot .bubble {
+    background: var(--card); border: 1px solid var(--border);
+    border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .sources { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .source-chip {
+    font-size: 12px; color: var(--accent); background: var(--accent-soft);
+    border-radius: 999px; padding: 3px 11px;
+  }
+  .mode-tag { display: inline-block; font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .welcome {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px; margin-bottom: 20px;
+  }
+  .welcome h2 { font-size: 15px; margin-bottom: 6px; }
+  .welcome p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .suggestion {
+    font-size: 13px; border: 1px solid var(--border); background: var(--card);
+    color: var(--accent); border-radius: 999px; padding: 7px 14px; cursor: pointer;
+    transition: background .15s;
+  }
+  .suggestion:hover { background: var(--accent-soft); }
+  .typing { display: inline-flex; gap: 4px; padding: 6px 2px; }
+  .typing span {
+    width: 7px; height: 7px; border-radius: 50%; background: #c3cbd6;
+    animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,80%,100% { opacity: .25 } 40% { opacity: 1 } }
+  footer {
+    background: var(--card); border-top: 1px solid var(--border); padding: 14px 20px 18px;
+  }
+  .input-row {
+    max-width: 780px; margin: 0 auto; display: flex; gap: 10px;
+  }
+  #q {
+    flex: 1; font-size: 14.5px; font-family: inherit;
+    border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px;
+    outline: none; transition: border-color .15s;
+  }
+  #q:focus { border-color: var(--accent); }
+  #send {
+    background: var(--accent); color: #fff; border: none; border-radius: 12px;
+    padding: 0 22px; font-size: 14.5px; font-family: inherit; cursor: pointer;
+    font-weight: 600;
+  }
+  #send:disabled { opacity: .5; cursor: default; }
+  .disclaimer {
+    max-width: 780px; margin: 8px auto 0; font-size: 11.5px; color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Q</div>
+  <div>
+    <h1>社内FAQ AI</h1>
+    <div class="sub" id="subtitle">社内規程・マニュアルに基づいて回答します</div>
+  </div>
+</header>
+
+<div id="chat"><div class="inner" id="messages">
+  <div class="welcome">
+    <h2>👋 こんにちは！社内のことなら何でも聞いてください</h2>
+    <p>就業規則・経費精算規程・社内FAQ を読み込んでいます。回答には必ず出典（根拠となる規程の条項）を表示します。資料に載っていないことは、推測せず「わからない」とお答えします。</p>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+</div></div>
+
+<footer>
+  <div class="input-row">
+    <input id="q" type="text" placeholder="質問を入力してください…" autocomplete="off">
+    <button id="send">送信</button>
+  </div>
+  <div class="disclaimer">回答はAIによる生成です。重要な判断の際は出典の原文をご確認ください。 — 株式会社サンプル商事（架空の会社のデモデータ）</div>
+</footer>
+
+<script>
+const messages = document.getElementById('messages');
+const chat = document.getElementById('chat');
+const input = document.getElementById('q');
+const sendBtn = document.getElementById('send');
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function addUser(text) {
+  const row = el('div', 'row user');
+  row.appendChild(el('div', 'bubble', text));
+  messages.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addTyping() {
+  const row = el('div', 'row bot');
+  const bubble = el('div', 'bubble');
+  const t = el('div', 'typing');
+  for (let i = 0; i < 3; i++) t.appendChild(el('span'));
+  bubble.appendChild(t);
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return row;
+}
+
+function addBot(data) {
+  const row = el('div', 'row bot');
+  const bubble = el('div', 'bubble');
+  bubble.appendChild(document.createTextNode(data.answer));
+  if (data.sources && data.sources.length) {
+    const srcs = el('div', 'sources');
+    data.sources.forEach(s => srcs.appendChild(el('span', 'source-chip', '📄 ' + s.doc + '　' + s.section)));
+    bubble.appendChild(srcs);
+  }
+  const modeLabels = { ai: 'AI回答', extract: '抜粋モード（APIキー設定でAI回答に切替）', refusal: '' };
+  if (modeLabels[data.mode]) bubble.appendChild(el('div', 'mode-tag', modeLabels[data.mode]));
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function ask(text) {
+  const question = (text || input.value).trim();
+  if (!question) return;
+  input.value = '';
+  sendBtn.disabled = true;
+  addUser(question);
+  const typing = addTyping();
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    const data = await res.json();
+    typing.remove();
+    addBot(data);
+  } catch (e) {
+    typing.remove();
+    addBot({ answer: 'エラーが発生しました: ' + e.message, sources: [], mode: '' });
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+const DEFAULT_QUESTIONS = [
+  '有給休暇は何日前までに申請すればいいですか？',
+  '経費精算の申請期限はいつまでですか？',
+  'リモートワークは週何日までできますか？',
+  '会議室を予約するにはどうすればいいですか？',
+];
+
+async function loadMeta() {
+  const box = document.getElementById('suggestions');
+  let questions = DEFAULT_QUESTIONS;
+  try {
+    const meta = await (await fetch('/api/meta')).json();
+    if (meta.name) {
+      document.getElementById('subtitle').textContent = meta.name + ' の社内規程・マニュアルに基づいて回答します';
+      document.title = '社内FAQ AI — ' + meta.name;
+    }
+    if (meta.questions && meta.questions.length) questions = meta.questions;
+  } catch (e) { /* defaults */ }
+  box.innerHTML = '';
+  questions.forEach(q => {
+    const b = el('button', 'suggestion', q.length > 24 ? q.slice(0, 23) + '…' : q);
+    b.addEventListener('click', () => ask(q));
+    box.appendChild(b);
+  });
+}
+loadMeta();
+
+sendBtn.addEventListener('click', () => ask());
+input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) ask(); });
+input.focus();
+</script>
+</body>
+</html>

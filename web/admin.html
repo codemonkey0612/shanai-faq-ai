@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社内FAQ AI — 管理画面</title>
+<style>
+  :root {
+    --accent: #2f6fed; --accent-soft: #eaf1fe; --bg: #f4f6f9; --card: #fff;
+    --text: #1f2937; --muted: #6b7280; --border: #e5e7eb; --warn: #b45309; --warn-soft: #fef3c7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 22px; display: flex; align-items: center; gap: 12px;
+  }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  header h1 { font-size: 16px; }
+  header a { margin-left: auto; font-size: 13px; color: var(--accent); text-decoration: none; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stat .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  section h2 { font-size: 14px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+  .pill {
+    display: inline-block; font-size: 11.5px; border-radius: 999px; padding: 2px 10px;
+  }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Q</div>
+  <h1>社内FAQ AI — 管理画面 <span id="tname" style="color:var(--muted);font-weight:400;font-size:13px"></span></h1>
+  <a href="/">← チャット画面へ</a>
+</header>
+<main>
+  <div class="cards">
+    <div class="stat"><div class="label">質問数（累計）</div><div class="value" id="s-total">–</div></div>
+    <div class="stat"><div class="label">回答率</div><div class="value" id="s-rate">–</div></div>
+    <div class="stat"><div class="label">未回答</div><div class="value" id="s-un">–</div></div>
+    <div class="stat"><div class="label">登録ドキュメント</div><div class="value" id="s-docs">–</div></div>
+  </div>
+
+  <section>
+    <h2>⚠ 未回答の質問（資料追加の候補）</h2>
+    <div id="unanswered"></div>
+    <div class="hint">ここに溜まった質問が「来月の改善」になります。対応する資料を追加して再取り込みしてください。月次レポートは <code>python3 -m app report --month YYYY-MM</code> で出力できます。</div>
+  </section>
+
+  <section>
+    <h2>よくある質問 TOP</h2>
+    <div id="top"></div>
+  </section>
+
+  <section>
+    <h2>登録済みドキュメント</h2>
+    <div id="docs"></div>
+  </section>
+
+  <section>
+    <h2>最近の質問ログ</h2>
+    <div id="recent"></div>
+  </section>
+</main>
+
+<script>
+function table(headers, rows) {
+  if (!rows.length) return '<div class="empty">データがありません</div>';
+  const th = headers.map(h => `<th>${h}</th>`).join('');
+  const trs = rows.map(cells => '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>').join('');
+  return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function load() {
+  const meta = await (await fetch('/api/meta')).json();
+  if (meta.name) document.getElementById('tname').textContent = '｜' + meta.name;
+  const s = await (await fetch('/api/admin/stats')).json();
+  document.getElementById('s-total').textContent = s.total;
+  document.getElementById('s-rate').textContent = s.total ? Math.round(100 * s.answered / s.total) + '%' : '–';
+  document.getElementById('s-un').textContent = s.unanswered;
+  document.getElementById('s-docs').textContent = s.documents.length;
+  document.getElementById('unanswered').innerHTML =
+    table(['質問', '日時'], s.unanswered_list.map(u => [esc(u.question), u.created_at]));
+  document.getElementById('top').innerHTML =
+    table(['質問', '回数'], s.top_questions.map(t => [esc(t.question), t.count]));
+  document.getElementById('docs').innerHTML =
+    table(['ドキュメント', 'チャンク数'], s.documents.map(d => [esc(d.title), d.chunks]));
+  document.getElementById('recent').innerHTML =
+    table(['質問', '状態', '日時'], s.recent.map(m => [
+      esc(m.question),
+      m.answered ? '<span class="pill ok">回答</span>' : '<span class="pill warn">未回答</span>',
+      m.created_at,
+    ]));
+}
+load();
+</script>
+</body>
+</html>

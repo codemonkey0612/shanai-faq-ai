@@ -1,0 +1,17 @@
+{"question": "有給休暇は何日前までに申請すればいいですか？", "expect": "3営業日前", "expect_doc": "就業規則"}
+{"question": "経費精算の申請期限はいつまでですか？", "expect": "翌月5日", "expect_doc": "経費精算規程"}
+{"question": "3万円以上の領収書で必要なものは？", "expect": "宛名", "expect_doc": "経費精算規程"}
+{"question": "残業するときの手続きを教えて", "expect": "所属長", "expect_doc": "就業規則"}
+{"question": "リモートワークは週何日までできますか？", "expect": "週2日", "expect_doc": "就業規則"}
+{"question": "副業はできますか？", "expect": "許可", "expect_doc": "就業規則"}
+{"question": "退職する場合は何日前までに届け出が必要？", "expect": "30日前", "expect_doc": "就業規則"}
+{"question": "給与の支払日はいつですか？", "expect": "翌月25日", "expect_doc": "就業規則"}
+{"question": "取引先との会食で事前承認が必要になる金額は？", "expect": "5,000円", "expect_doc": "経費精算規程"}
+{"question": "会議室を予約する方法は？", "expect": "Googleカレンダー", "expect_doc": "社内FAQ"}
+{"question": "パスワードを忘れたらどうすればいい？", "expect": "ヘルプデスク", "expect_doc": "社内FAQ"}
+{"question": "配偶者が亡くなった場合の特別休暇は何日？", "expect": "5日", "expect_doc": "就業規則"}
+{"question": "日帰り出張の日当はいくらですか？", "expect": "2,000円", "expect_doc": "経費精算規程"}
+{"question": "健康診断はいつ実施されますか？", "expect": "10月", "expect_doc": "社内FAQ"}
+{"question": "始業時刻と終業時刻は？", "expect": "午前9時", "expect_doc": "就業規則"}
+{"question": "今日の東京の天気を教えて", "expect_refusal": true}
+{"question": "おすすめのラーメン屋はどこですか？", "expect_refusal": true}
