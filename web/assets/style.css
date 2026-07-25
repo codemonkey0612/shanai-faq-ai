@@ -1,98 +1,103 @@
 /* 社内FAQ AI — shared design system.
-   Light is the default; dark applies via prefers-color-scheme AND can be
-   forced either way with [data-theme], so the manual toggle always wins. */
+   Direction: たより (Tayori) — asking this bot should feel like messaging
+   a helpful coworker, not filing an inquiry. Warm peach ground, coral
+   accent, real speech-bubble shapes. Light is the default; dark applies
+   via prefers-color-scheme AND can be forced either way with [data-theme],
+   so the manual toggle always wins — dark stays in the same warm-brown
+   family rather than falling back to generic slate. */
 
 :root {
-  --bg: #f5f6f8;
+  --bg: #fff1e9;
   --surface: #ffffff;
-  --surface-2: #eef1f5;
-  --surface-hover: #f0f2f6;
-  --border: #e4e7ec;
-  --border-strong: #d0d5dd;
-  --text: #1a1d29;
-  --text-2: #667085;
-  --text-3: #98a2b3;
+  --surface-2: #ffede3;
+  --surface-hover: #ffe8dc;
+  --border: #ffd9c7;
+  --border-strong: #ffc2a6;
+  --text: #4a2e22;
+  --text-2: #8a6e60;
+  --text-3: #b29c90;
 
-  --primary: #2f6fed;
-  --primary-hover: #2557c7;
-  --primary-soft: #eaf1fe;
+  --primary: #ff8b6b;
+  --primary-hover: #ff7550;
+  --primary-soft: #ffe4d6;
   --primary-contrast: #ffffff;
 
-  --success: #12915a;
-  --success-soft: #e6f7ee;
-  --danger: #d92d3a;
-  --danger-soft: #fdecec;
-  --warning: #b45309;
-  --warning-soft: #fef3c7;
+  --success: #2f9e6b;
+  --success-soft: #e3f5ec;
+  --danger: #e0524a;
+  --danger-soft: #fde9e7;
+  --warning: #c4841f;
+  --warning-soft: #fbf0dd;
 
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
-  --shadow-md: 0 4px 16px rgba(16, 24, 40, .08);
-  --shadow-lg: 0 16px 40px rgba(16, 24, 40, .14);
+  --shadow-sm: 0 1px 2px rgba(74, 46, 34, .08);
+  --shadow-md: 0 4px 16px rgba(74, 46, 34, .10);
+  --shadow-lg: 0 16px 40px rgba(74, 46, 34, .16);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
   --radius-full: 999px;
 
   --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  --font-display: "Hiragino Maru Gothic ProN", "Yu Gothic UI", var(--font);
   --ease: cubic-bezier(.2, .8, .2, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0d0f14;
-    --surface: #171a21;
-    --surface-2: #1f232c;
-    --surface-hover: #242833;
-    --border: #2a2f3a;
-    --border-strong: #3a4150;
-    --text: #eef1f6;
-    --text-2: #9aa4b5;
-    --text-3: #6b7482;
+    --bg: #1f140d;
+    --surface: #2b1d14;
+    --surface-2: #35251a;
+    --surface-hover: #3d2c1f;
+    --border: #4a3527;
+    --border-strong: #5c4230;
+    --text: #ffe9dd;
+    --text-2: #c9a793;
+    --text-3: #8f7060;
 
-    --primary: #6d9bf5;
-    --primary-hover: #86aef7;
-    --primary-soft: rgba(109, 155, 245, .16);
-    --primary-contrast: #0d0f14;
+    --primary: #ff9b7a;
+    --primary-hover: #ffb093;
+    --primary-soft: rgba(255, 139, 107, .18);
+    --primary-contrast: #2b1508;
 
-    --success: #3fd689;
-    --success-soft: rgba(63, 214, 137, .14);
-    --danger: #f2777c;
-    --danger-soft: rgba(242, 119, 124, .14);
-    --warning: #f5b84e;
-    --warning-soft: rgba(245, 184, 78, .14);
+    --success: #4fcb8f;
+    --success-soft: rgba(79, 203, 143, .15);
+    --danger: #ff8079;
+    --danger-soft: rgba(255, 128, 121, .15);
+    --warning: #e8ac4e;
+    --warning-soft: rgba(232, 172, 78, .15);
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, .45);
-    --shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
+    --shadow-sm: 0 1px 2px rgba(10, 5, 2, .4);
+    --shadow-md: 0 4px 16px rgba(10, 5, 2, .45);
+    --shadow-lg: 0 16px 40px rgba(10, 5, 2, .55);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0d0f14;
-  --surface: #171a21;
-  --surface-2: #1f232c;
-  --surface-hover: #242833;
-  --border: #2a2f3a;
-  --border-strong: #3a4150;
-  --text: #eef1f6;
-  --text-2: #9aa4b5;
-  --text-3: #6b7482;
+  --bg: #1f140d;
+  --surface: #2b1d14;
+  --surface-2: #35251a;
+  --surface-hover: #3d2c1f;
+  --border: #4a3527;
+  --border-strong: #5c4230;
+  --text: #ffe9dd;
+  --text-2: #c9a793;
+  --text-3: #8f7060;
 
-  --primary: #6d9bf5;
-  --primary-hover: #86aef7;
-  --primary-soft: rgba(109, 155, 245, .16);
-  --primary-contrast: #0d0f14;
+  --primary: #ff9b7a;
+  --primary-hover: #ffb093;
+  --primary-soft: rgba(255, 139, 107, .18);
+  --primary-contrast: #2b1508;
 
-  --success: #3fd689;
-  --success-soft: rgba(63, 214, 137, .14);
-  --danger: #f2777c;
-  --danger-soft: rgba(242, 119, 124, .14);
-  --warning: #f5b84e;
-  --warning-soft: rgba(245, 184, 78, .14);
+  --success: #4fcb8f;
+  --success-soft: rgba(79, 203, 143, .15);
+  --danger: #ff8079;
+  --danger-soft: rgba(255, 128, 121, .15);
+  --warning: #e8ac4e;
+  --warning-soft: rgba(232, 172, 78, .15);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, .45);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
+  --shadow-sm: 0 1px 2px rgba(10, 5, 2, .4);
+  --shadow-md: 0 4px 16px rgba(10, 5, 2, .45);
+  --shadow-lg: 0 16px 40px rgba(10, 5, 2, .55);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -112,11 +117,11 @@ a { color: var(--primary); }
 
 /* ---- brand mark ---- */
 .brand-mark {
-  width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
-  background: linear-gradient(155deg, #4c86ff, #2f6fed 55%, #2453c9);
+  width: 36px; height: 36px; border-radius: 13px; flex-shrink: 0;
+  background: linear-gradient(155deg, #ffab8c, #ff8b6b 55%, #f26a45);
   color: #fff; display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 15px; letter-spacing: -.02em;
-  box-shadow: 0 2px 6px rgba(47, 111, 237, .35);
+  box-shadow: 0 2px 6px rgba(255, 139, 107, .35);
 }
 .brand-mark svg { width: 19px; height: 19px; }
 
@@ -222,7 +227,7 @@ a { color: var(--primary); }
 .toast.leaving { animation: toast-out .2s var(--ease) forwards; }
 .toast svg { width: 15px; height: 15px; flex-shrink: 0; }
 .toast.toast-success svg { color: var(--success); }
-.toast.toast-error svg { color: #ff8b8f; }
+.toast.toast-error svg { color: var(--danger); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(10px) scale(.95); } to { opacity: 1; transform: none; } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(6px) scale(.96); } }
 
