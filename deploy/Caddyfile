@@ -2,8 +2,6 @@ app.shanaiai.com {
 	reverse_proxy 127.0.0.1:8000
 }
 
-# Bare domain reserved for the future landing page (Vercel).
-# Temporary redirect so it doesn't 404 in the meantime.
-shanaiai.com, www.shanaiai.com {
-	redir https://app.shanaiai.com{uri} permanent
-}
+# shanaiai.com (bare + www) is the landing page — served by Vercel, not
+# this server. DNS for those hostnames points at Vercel, so Caddy never
+# receives their traffic; nothing to configure here.
