@@ -32,15 +32,17 @@
   </div>
 </header>
 
-<div id="chat-scroll">
-  <div class="inner" id="messages">
-    <div class="welcome card">
-      <div class="welcome-icon">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 4.4L18 9l-4.1 1.6L12 15l-1.9-4.4L6 9l4.1-1.6L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M19 14.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8.8-1.9z" fill="currentColor"/></svg>
+<div class="chat-area">
+  <div id="chat-scroll">
+    <div class="inner" id="messages">
+      <div class="welcome card">
+        <div class="welcome-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 4.4L18 9l-4.1 1.6L12 15l-1.9-4.4L6 9l4.1-1.6L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M19 14.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8.8-1.9z" fill="currentColor"/></svg>
+        </div>
+        <h2>こんにちは！社内のことなら何でも聞いてください</h2>
+        <p>就業規則・経費精算規程・社内FAQ を読み込んでいます。回答には必ず出典（根拠となる規程の条項）を表示します。資料に載っていないことは、推測せず「わからない」とお答えします。</p>
+        <div class="suggestions" id="suggestions"></div>
       </div>
-      <h2>こんにちは！社内のことなら何でも聞いてください</h2>
-      <p>就業規則・経費精算規程・社内FAQ を読み込んでいます。回答には必ず出典（根拠となる規程の条項）を表示します。資料に載っていないことは、推測せず「わからない」とお答えします。</p>
-      <div class="suggestions" id="suggestions"></div>
     </div>
   </div>
   <button class="scroll-btn" id="scroll-btn" aria-label="最新のメッセージへ">
