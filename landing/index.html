@@ -165,6 +165,16 @@
     border: 2px solid var(--ink); top: -7px; left: 50%; transform: translateX(-50%); z-index: 2;
   }
 
+  /* real photo, pinned like an actual photograph on the corkboard */
+  .pinned-photo {
+    position: absolute; top: 42%; right: 0; width: 220px; background: #fff;
+    border: 2px solid var(--ink); padding: 8px 8px 10px; transform: rotate(5deg);
+    box-shadow: 5px 5px 0 rgba(43,38,32,.85);
+  }
+  .pinned-photo img { width: 100%; display: block; }
+  .pinned-photo .photo-cap { font-family: var(--hand-jp); font-weight: 700; font-size: 11px; text-align: center; margin-top: 7px; color: var(--ink-soft); }
+  @media (max-width: 860px) { .pinned-photo { position: static; width: 100%; transform: none; margin-top: 8px; } }
+
   /* ---------------- stat strip ---------------- */
   .stats { background: var(--paper); padding: 64px 0 40px; }
   .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -303,6 +313,12 @@
       <div class="note p n2"><div class="note-text">わからない時は<br>正直に言う</div></div>
       <div class="note s n3"><div class="note-text">人数無制限<br>¥30,000〜/月</div></div>
       <div class="note k n4"><div class="note-text">最短24時間で<br>デモ環境</div></div>
+
+      <div class="pinned-photo">
+        <div class="pin"></div>
+        <img src="assets/tokyo-tower.jpg" alt="東京タワーと都心の街並み" loading="lazy">
+        <div class="photo-cap">東京タワー</div>
+      </div>
 
       <div class="board-card">
         <div class="pin"></div>
@@ -456,7 +472,7 @@
   <div class="wrap">
     <h2 class="reveal">総務部の「よくある質問」を、<br>AIに任せませんか。</h2>
     <p class="reveal">資料を3つ送っていただくだけで、御社専用のデモを24時間以内にご用意します。</p>
-    <a class="btn-primary reveal" href="mailto:tajdine.elm@gmail.com?subject=%E7%A4%BE%E5%86%85FAQ%20AI%E3%81%AE%E3%83%87%E3%83%A2%E3%82%92%E5%B8%8C%E6%9C%9B" style="font-size:15px;padding:16px 30px">
+    <a class="btn-primary reveal" href="mailto:bugsmile90@gmail.com?subject=%E7%A4%BE%E5%86%85FAQ%20AI%E3%81%AE%E3%83%87%E3%83%A2%E3%82%92%E5%B8%8C%E6%9C%9B" style="font-size:15px;padding:16px 30px">
       資料3つで、24時間デモを依頼する
       <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
@@ -469,7 +485,7 @@
       <rect width="32" height="32" rx="7" fill="#ECE4D3"/>
       <path d="M9 12.5A3 3 0 0112 9.5h8a3 3 0 013 3v6a3 3 0 01-3 3h-6l-4 3v-3H12a3 3 0 01-3-3v-6z" stroke="#2B2620" stroke-width="1.6"/>
     </svg>
-    <span>© 2026 社内FAQ AI</span>
+    <span>© 2026 社内FAQ AI ・ Photo: Francisco Anzola (CC BY 3.0)</span>
     <div class="foot-links">
       <a href="https://app.shanaiai.com" target="_blank" rel="noopener">ログイン</a>
       <a href="#pricing">料金</a>
