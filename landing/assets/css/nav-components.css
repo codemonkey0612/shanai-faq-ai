@@ -1,0 +1,61 @@
+/* nav-components.css — torn-paper section divider, nav bar, sticky-note component, primary/ghost buttons */
+
+  /* ---------------- torn-paper edge (section divider) ---------------- */
+  .torn-bottom {
+    clip-path: polygon(0 0, 100% 0, 100% 97%, 96% 100%, 91% 96%, 86% 100%, 81% 97%, 76% 100%, 71% 96%,
+      66% 100%, 61% 97%, 56% 100%, 51% 96%, 46% 100%, 41% 97%, 36% 100%, 31% 96%, 26% 100%, 21% 97%,
+      16% 100%, 11% 96%, 6% 100%, 0 97%);
+  }
+
+  /* ---------------- nav ---------------- */
+  nav {
+    position: sticky; top: 0; z-index: 100; background: rgba(255, 253, 247, .92); backdrop-filter: blur(10px);
+    display: flex; align-items: center; gap: 16px; padding: 16px 28px; border-bottom: 2px solid transparent;
+    transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  nav.scrolled { border-bottom-color: var(--ink); box-shadow: 0 8px 24px -12px rgba(43,38,32,.25); }
+  .nav-mark { width: 30px; height: 30px; flex-shrink: 0; }
+  .nav-name { font-weight: 800; font-size: 15px; color: var(--ink); }
+  .nav-links { margin-left: auto; display: flex; align-items: center; gap: 26px; font-size: 13.5px; }
+  .nav-links a:not(.nav-cta):not(.nav-login) { color: var(--ink-soft); transition: color .15s; }
+  .nav-links a:not(.nav-cta):not(.nav-login):hover { color: var(--ink); }
+  .nav-login {
+    color: var(--ink); font-weight: 700; border-bottom: 2px solid var(--sky); padding-bottom: 2px;
+  }
+  .nav-cta {
+    background: var(--ink); color: var(--paper); font-weight: 700; font-size: 13px;
+    padding: 9px 18px; border: 2px solid var(--ink); transition: all .15s var(--ease);
+  }
+  .nav-cta:hover { background: var(--paper); color: var(--ink); }
+  @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+  /* ---------------- sticky note component (reused throughout) ---------------- */
+  .note {
+    position: relative; border-radius: 3px 3px 8px 3px; padding: 16px 18px;
+    box-shadow: 3px 5px 0 rgba(43,38,32,.08), 0 1px 2px rgba(43,38,32,.1), 0 20px 30px -18px rgba(43,38,32,.35);
+  }
+  .note::before {
+    content: ""; position: absolute; top: -9px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+    width: 46px; height: 18px; background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.04);
+  }
+  .note.tape-off::before { display: none; }
+  .note.y { background: var(--yellow); color: var(--yellow-ink); }
+  .note.p { background: var(--pink); color: var(--pink-ink); }
+  .note.s { background: var(--sage); color: var(--sage-ink); }
+  .note.k { background: var(--sky); color: var(--sky-ink); }
+  .note .note-text { font-family: var(--hand-jp); font-weight: 700; font-size: 13.5px; line-height: 1.6; }
+
+  /* ---------------- buttons ---------------- */
+  .btn-primary {
+    background: var(--marker); color: #fff; font-weight: 700; font-size: 14.5px; padding: 15px 26px;
+    border: 2px solid var(--ink); border-radius: 4px; display: inline-flex; align-items: center; gap: 9px;
+    box-shadow: 4px 4px 0 var(--ink); transition: transform .12s var(--ease), box-shadow .12s var(--ease);
+  }
+  .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+  .btn-primary:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--ink); }
+  .btn-ghost {
+    border: 2px solid var(--ink); color: var(--ink); font-weight: 700; font-size: 14.5px; padding: 13px 24px;
+    border-radius: 4px; background: transparent; transition: background .15s;
+  }
+  .btn-ghost:hover { background: var(--board); }
+

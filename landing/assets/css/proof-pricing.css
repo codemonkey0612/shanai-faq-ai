@@ -1,0 +1,108 @@
+/* proof-pricing.css — section heading style, proof section, pricing section */
+
+  /* ---------------- section heads ---------------- */
+  .section-pad { padding: 90px 0; }
+  h2.section-h {
+    font-size: clamp(26px, 3.2vw, 38px); font-weight: 800; color: var(--ink); letter-spacing: -.005em;
+    line-height: 1.4; text-wrap: balance; margin-bottom: 14px;
+  }
+  .section-lead { font-size: 15px; line-height: 1.9; max-width: 56ch; }
+
+  /* ---------------- proof ---------------- */
+  .proof { position: relative; background: var(--board); overflow: hidden; }
+  .proof::before {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background: url(../proof-bg.jpg) center/cover no-repeat;
+  }
+  .proof::after {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background: rgba(236,228,211,.82);
+  }
+  .proof > .wrap { position: relative; z-index: 1; }
+  .proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 100px; }
+  @media (max-width: 860px) { .proof-grid { grid-template-columns: 1fr; } }
+  .proof-case { position: relative; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; padding: 22px; transition: transform .25s ease; }
+  .proof-case.no { border-style: dashed; }
+  .proof-case.ok:hover { transform: rotate(-2deg); }
+  .proof-case.no:hover { transform: rotate(2deg); }
+  @media (prefers-reduced-motion: reduce) { .proof-case.ok:hover, .proof-case.no:hover { transform: none; } }
+  .proof-avatar { position: absolute; top: -58px; left: 16px; width: 68px; pointer-events: none; }
+
+  /* avatar size tiers: 3x at >=768px, 2x between 420-768px, 1.5x below 420px.
+     margin-top (and gap, once cards stack) scale alongside so the bigger art never
+     clips into the lead paragraph or overlaps the card above it. */
+  @media (min-width: 768px) {
+    .proof-avatar { width: 204px; top: -224px; }
+    .proof-grid { margin-top: 244px; }
+  }
+  @media (min-width: 768px) and (max-width: 860px) {
+    .proof-grid { gap: 244px; }
+  }
+  @media (min-width: 420px) and (max-width: 767.98px) {
+    .proof-avatar { width: 136px; top: -155px; }
+    .proof-grid { margin-top: 175px; gap: 175px; }
+  }
+  @media (max-width: 419.98px) {
+    .proof-avatar { width: 102px; top: -115px; }
+    .proof-grid { margin-top: 130px; gap: 130px; }
+  }
+  .case-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; margin-bottom: 12px; }
+  .case-label.ok { color: var(--sage-ink); }
+  .case-label.no { color: var(--pink-ink); }
+  .case-label svg { width: 13px; height: 13px; }
+  .proof-q { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 9px; font-weight: 700; }
+  .proof-bubble { font-size: 14px; line-height: 1.85; color: var(--ink); }
+  .proof-bubble.refusal { color: var(--ink-soft); }
+
+  /* ---------------- pricing: two quotation slips, slightly askew ---------------- */
+  .pricing { background: var(--paper); }
+  .pricing .wrap { position: relative; }
+
+  /* default (stacked layout, <=780px): the illustration is a normal element sitting
+     between the lead paragraph and the cards — not absolutely positioned — so it
+     always clears the text correctly no matter how many lines the heading wraps to */
+  .pricing-team { display: block; margin: 32px auto 0; width: 190px; pointer-events: none; }
+  .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; margin-top: 46px; align-items: start; }
+  @media (max-width: 780px) { .price-grid { grid-template-columns: 1fr; gap: 46px; } }
+
+  /* >=901px: illustration moves beside the heading, in the whitespace to its right */
+  @media (min-width: 901px) {
+    .pricing-team { position: absolute; top: 0; right: 0; left: auto; margin: 0; width: 280px; }
+    .price-grid { margin-top: 90px; }
+  }
+
+  /* 781-900px: same idea, just scaled down so it keeps fitting */
+  @media (min-width: 781px) and (max-width: 900px) {
+    .pricing-team { position: absolute; top: 0; right: 0; left: auto; margin: 0; width: 240px; }
+    .price-grid { margin-top: 90px; }
+  }
+  .price-card {
+    border: 2px solid var(--ink); border-radius: 3px; padding: 28px 26px 36px; position: relative; background: var(--paper);
+    box-shadow: 5px 5px 0 rgba(43,38,32,.85), 0 26px 40px -18px rgba(43,38,32,.35); transform: rotate(-1.2deg);
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .price-card.featured { background: var(--yellow); transform: rotate(1deg); box-shadow: 6px 6px 0 rgba(43,38,32,.9), 0 26px 40px -18px rgba(43,38,32,.35); }
+  .price-card:hover { transform: translateX(6px) rotate(3deg) translateY(-4px); box-shadow: 5px 5px 0 rgba(43,38,32,.85), 0 32px 46px -16px rgba(43,38,32,.42); }
+  @media (prefers-reduced-motion: reduce) { .price-card:hover { transform: none; } }
+  .price-card::after {
+    content: ""; position: absolute; left: 18px; right: 18px; bottom: 16px; border-top: 1.5px dashed rgba(43,38,32,.25);
+  }
+  .price-card.featured::before {
+    content: "毎月"; position: absolute; top: -13px; left: 22px;
+    background: var(--ink); color: var(--paper); font-size: 10.5px; font-weight: 800; padding: 4px 12px; border-radius: 3px;
+    transform: rotate(-2deg);
+  }
+  .price-kicker { font-size: 12px; color: var(--ink-soft); font-weight: 700; margin-bottom: 9px; }
+  .price-card.featured .price-kicker { color: var(--yellow-ink); }
+  .price-amount { font-size: 30px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .price-amount .yen { font-size: .5em; margin-right: 2px; }
+  .price-amount .per { font-size: .34em; font-weight: 600; }
+  .price-note { font-size: 12.5px; line-height: 1.8; margin: 12px 0 16px; }
+  .price-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .price-list li { display: flex; gap: 8px; font-size: 12.5px; align-items: flex-start; }
+  .price-list svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+  .price-compare {
+    margin-top: 32px; padding: 18px 22px; border: 2px dashed var(--ink); border-radius: 6px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink);
+  }
+

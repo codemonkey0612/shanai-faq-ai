@@ -1,0 +1,109 @@
+/* subsidy-faq-cta.css — subsidy section, FAQ section, final CTA memo, footer */
+
+  /* ---------------- subsidy ---------------- */
+  .subsidy { background: var(--board); }
+  .subsidy-row {
+    margin-top: 36px; display: flex; align-items: center; justify-content: center; gap: 28px;
+  }
+  .subsidy-box {
+    background: var(--sage); color: var(--sage-ink); border: 2px solid var(--ink); border-radius: 6px;
+    padding: 36px; display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center;
+    flex: 1 1 auto; min-width: 0; order: 2;
+  }
+  @media (max-width: 640px) { .subsidy-box { grid-template-columns: 1fr; } }
+  .subsidy-exclaim {
+    order: 1; flex: 0 0 auto; width: clamp(56px, 6.5vw, 96px); align-self: center;
+  }
+  .subsidy-woman {
+    order: 3; flex: 0 0 auto; width: clamp(192px, 20vw, 240px); align-self: flex-end;
+  }
+  @media (max-width: 760px) {
+    .subsidy-row { flex-direction: column; gap: 20px; }
+    .subsidy-woman { order: 1; width: clamp(110px, 34vw, 170px); align-self: center; }
+    .subsidy-box { order: 2; width: 100%; }
+    .subsidy-exclaim { order: 3; width: clamp(48px, 14vw, 68px); align-self: center; }
+  }
+  @media (max-width: 420px) {
+    .subsidy-woman { width: clamp(90px, 40vw, 130px); }
+    .subsidy-exclaim { width: 44px; }
+  }
+  .frac-label {
+    font-size: clamp(6.25px, calc(6.25px + (100vw - 761px) * 0.01741), 12.5px);
+    font-weight: 800; margin-bottom: 5px;
+  }
+  .frac-num {
+    font-size: clamp(24px, calc(24px + (100vw - 761px) * 0.06685), 48px);
+    font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap;
+  }
+  .subsidy-text p { font-size: 13.5px; line-height: 1.85; }
+  .subsidy-text strong { font-weight: 800; }
+
+  /* ---------------- faq ---------------- */
+  .faq { background: var(--paper); }
+  .faq-list { margin-top: 40px; }
+  .faq-item { border-top: 2px solid var(--ink); }
+  .faq-item:last-child { border-bottom: 2px solid var(--ink); }
+  .faq-q {
+    width: 100%; text-align: left; background: none; border: none; cursor: pointer; padding: 20px 2px;
+    font: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink);
+    display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  }
+  .faq-q .plus { width: 18px; height: 18px; position: relative; flex-shrink: 0; }
+  .faq-q .plus::before, .faq-q .plus::after { content: ""; position: absolute; background: var(--marker); }
+  .faq-q .plus::before { top: 8px; left: 0; width: 18px; height: 3px; }
+  .faq-q .plus::after { top: 0; left: 8px; width: 3px; height: 18px; transition: transform .25s var(--ease); }
+  .faq-item.open .plus::after { transform: rotate(90deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s var(--ease); }
+  .faq-a p { font-size: 13px; line-height: 1.9; padding: 0 2px 20px; max-width: 60ch; }
+
+  /* relaxed-employee illustrations, sitting in the section's own bottom padding,
+     flanking the FAQ list — the payoff of "you won't get asked this stuff anymore" */
+  .faq-relax { position: absolute; bottom: -8px; width: 192px; pointer-events: none; z-index: 2; }
+  .faq-relax.left { left: 28px; transform: rotate(-6deg); }
+  .faq-relax.right { right: 28px; transform: rotate(6deg) scaleX(-1); }
+  @media (max-width: 1040px) { .faq-relax { width: 160px; } }
+  @media (max-width: 860px) { .faq-relax { width: 120px; } }
+  @media (max-width: 550px) { .faq-relax { width: 80px; } }
+  @media (max-width: 240px) {
+    .faq-relax {
+      position: static; display: block; width: 80px;
+      margin: 16px auto 0; transform: none !important; bottom: auto; left: auto; right: auto;
+    }
+  }
+
+  /* ---------------- final cta ---------------- */
+  /* final CTA: a memo pinned in a dim room, not a generic centered dark-CTA */
+  .final-cta {
+    position: relative;
+    background-image:
+      linear-gradient(rgba(43,38,32,.86), rgba(43,38,32,.86)),
+      radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      url("../office-nexus.jpg");
+    background-size: auto, 16px 16px, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, repeat, no-repeat;
+    background-attachment: fixed, scroll, fixed;
+    padding: 90px 24px 104px; display: flex; justify-content: center;
+  }
+  @media (max-width: 768px) {
+    /* background-attachment: fixed can behave unreliably on mobile browsers;
+       fall back to a normal scrolling background there */
+    .final-cta { background-attachment: scroll, scroll, scroll; }
+  }
+  .cta-memo {
+    background: var(--paper); border-radius: 3px; padding: 44px 40px; max-width: 500px; width: 100%;
+    text-align: center; position: relative; transform: rotate(-1.4deg);
+    box-shadow: 9px 9px 0 rgba(0,0,0,.4);
+  }
+  .cta-memo .pin { width: 18px; height: 18px; top: -9px; }
+  .final-cta h2 { font-size: clamp(23px, 3.4vw, 32px); font-weight: 800; color: var(--ink); margin-bottom: 14px; text-wrap: balance; line-height: 1.4; }
+  .final-cta p { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 26px; line-height: 1.8; }
+  .final-cta .btn-primary { box-shadow: 4px 4px 0 var(--ink); }
+  .final-cta .btn-primary:hover { box-shadow: 6px 6px 0 var(--ink); }
+
+  footer {
+    background: var(--paper); padding: 36px 0;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft);
+  }
+  footer .nav-mark { width: 20px; height: 20px; }
+  footer .foot-links { margin-left: auto; display: flex; gap: 20px; }

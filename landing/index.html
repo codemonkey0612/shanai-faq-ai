@@ -9,299 +9,11 @@
 <meta property="og:description" content="社内資料を読み込んだAIが、根拠付きで即答。中小企業向け、月額¥30,000〜。">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B2620'/%3E%3Cpath d='M9 12.5A3 3 0 0112 9.5h8a3 3 0 013 3v6a3 3 0 01-3 3h-6l-4 3v-3H12a3 3 0 01-3-3v-6z' stroke='%23F3D35E' stroke-width='1.6'/%3E%3C/svg%3E">
-<style>
-  :root {
-    --board: #ece4d3;
-    --board-2: #e2d8c2;
-    --paper: #fffdf7;
-    --ink: #2b2620;
-    --ink-soft: #6b6255;
-    --line: #d8cdb4;
-    --yellow: #f3d35e;
-    --yellow-ink: #6b5610;
-    --pink: #f0a8ab;
-    --pink-ink: #7a2f34;
-    --sage: #a9c2a0;
-    --sage-ink: #35502f;
-    --sky: #9dc3d6;
-    --sky-ink: #1f4a5c;
-    --marker: #ff6f59;
-    --sans-jp: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", sans-serif;
-    --hand-jp: "Hiragino Maru Gothic ProN", "Yu Gothic UI", var(--sans-jp);
-    --ease: cubic-bezier(.16, 1, .3, 1);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--paper); color: var(--ink-soft);
-    font-family: var(--sans-jp); -webkit-font-smoothing: antialiased; overflow-x: hidden;
-  }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-  img, svg { display: block; max-width: 100%; }
-  a { color: inherit; text-decoration: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
-  section { position: relative; }
-
-  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
-  .reveal.in { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
-
-  /* subtle paper grain via layered radial dots, not a gradient mesh */
-  body::before {
-    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
-    background-image: radial-gradient(rgba(43,38,32,.05) .9px, transparent .9px);
-    background-size: 14px 14px;
-  }
-
-  /* ---------------- torn-paper edge (section divider) ---------------- */
-  .torn-bottom {
-    clip-path: polygon(0 0, 100% 0, 100% 97%, 96% 100%, 91% 96%, 86% 100%, 81% 97%, 76% 100%, 71% 96%,
-      66% 100%, 61% 97%, 56% 100%, 51% 96%, 46% 100%, 41% 97%, 36% 100%, 31% 96%, 26% 100%, 21% 97%,
-      16% 100%, 11% 96%, 6% 100%, 0 97%);
-  }
-
-  /* ---------------- nav ---------------- */
-  nav {
-    position: sticky; top: 0; z-index: 100; background: rgba(255, 253, 247, .92); backdrop-filter: blur(10px);
-    display: flex; align-items: center; gap: 16px; padding: 16px 28px; border-bottom: 2px solid transparent;
-    transition: border-color .3s var(--ease);
-  }
-  nav.scrolled { border-bottom-color: var(--ink); }
-  .nav-mark { width: 30px; height: 30px; flex-shrink: 0; }
-  .nav-name { font-weight: 800; font-size: 15px; color: var(--ink); }
-  .nav-links { margin-left: auto; display: flex; align-items: center; gap: 26px; font-size: 13.5px; }
-  .nav-links a:not(.nav-cta):not(.nav-login) { color: var(--ink-soft); transition: color .15s; }
-  .nav-links a:not(.nav-cta):not(.nav-login):hover { color: var(--ink); }
-  .nav-login {
-    color: var(--ink); font-weight: 700; border-bottom: 2px solid var(--sky); padding-bottom: 2px;
-  }
-  .nav-cta {
-    background: var(--ink); color: var(--paper); font-weight: 700; font-size: 13px;
-    padding: 9px 18px; border: 2px solid var(--ink); transition: all .15s var(--ease);
-  }
-  .nav-cta:hover { background: var(--paper); color: var(--ink); }
-  @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
-
-  /* ---------------- sticky note component (reused throughout) ---------------- */
-  .note {
-    position: relative; border-radius: 3px 3px 8px 3px; padding: 16px 18px;
-    box-shadow: 3px 5px 0 rgba(43,38,32,.08), 0 1px 2px rgba(43,38,32,.1);
-  }
-  .note::before {
-    content: ""; position: absolute; top: -9px; left: 50%; transform: translateX(-50%) rotate(-3deg);
-    width: 46px; height: 18px; background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.04);
-  }
-  .note.tape-off::before { display: none; }
-  .note.y { background: var(--yellow); color: var(--yellow-ink); }
-  .note.p { background: var(--pink); color: var(--pink-ink); }
-  .note.s { background: var(--sage); color: var(--sage-ink); }
-  .note.k { background: var(--sky); color: var(--sky-ink); }
-  .note .note-text { font-family: var(--hand-jp); font-weight: 700; font-size: 13.5px; line-height: 1.6; }
-
-  /* ---------------- buttons ---------------- */
-  .btn-primary {
-    background: var(--marker); color: #fff; font-weight: 700; font-size: 14.5px; padding: 15px 26px;
-    border: 2px solid var(--ink); border-radius: 4px; display: inline-flex; align-items: center; gap: 9px;
-    box-shadow: 4px 4px 0 var(--ink); transition: transform .12s var(--ease), box-shadow .12s var(--ease);
-  }
-  .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
-  .btn-primary:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--ink); }
-  .btn-ghost {
-    border: 2px solid var(--ink); color: var(--ink); font-weight: 700; font-size: 14.5px; padding: 13px 24px;
-    border-radius: 4px; background: transparent; transition: background .15s;
-  }
-  .btn-ghost:hover { background: var(--board); }
-
-  /* ---------------- hero: corkboard collage, not a 50/50 template grid ---------------- */
-  .hero { background: var(--board); padding: 64px 0 100px; }
-  .hero-head { max-width: 640px; margin-bottom: 56px; }
-  h1.hero-h {
-    font-size: clamp(32px, 4.6vw, 52px); font-weight: 800; color: var(--ink); line-height: 1.32;
-    letter-spacing: -.01em; text-wrap: balance;
-  }
-  .hero-h .mark {
-    background: linear-gradient(transparent 62%, var(--yellow) 62%); padding: 0 2px;
-  }
-  .hero-sub { font-size: 15.5px; line-height: 1.9; max-width: 48ch; margin: 22px 0 30px; }
-  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
-
-  .board {
-    position: relative; min-height: 380px;
-  }
-  .board .note { position: absolute; width: 168px; }
-  .board .n1 { top: 0; left: 2%; transform: rotate(-4deg); }
-  .board .n2 { top: 6%; left: 26%; transform: rotate(3deg); }
-  .board .n3 { top: 40%; left: 0; transform: rotate(2deg); }
-  .board .n4 { bottom: 0; left: 22%; transform: rotate(-2deg); }
-  @media (max-width: 860px) { .board .note { position: static; transform: none !important; width: auto; margin-bottom: 14px; } }
-
-  .board-card {
-    position: absolute; top: 2%; left: 44%; width: 320px; background: var(--paper);
-    border: 2px solid var(--ink); border-radius: 6px; padding: 18px;
-    box-shadow: 6px 6px 0 rgba(43,38,32,.9); transform: rotate(1.5deg);
-  }
-  @media (max-width: 860px) { .board-card { position: static; width: 100%; transform: none; margin-top: 8px; } }
-  .bc-head { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
-  .bc-dot { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--ink); }
-  .bc-title { font-size: 11px; color: var(--ink-soft); margin-left: 4px; font-weight: 700; }
-  .bc-q {
-    margin-left: auto; width: fit-content; max-width: 84%; background: var(--sky); color: var(--sky-ink);
-    font-family: var(--hand-jp); font-weight: 700; font-size: 12.5px; padding: 9px 13px;
-    border-radius: 10px 10px 2px 10px; margin-bottom: 9px; border: 1.5px solid var(--ink);
-    opacity: 0; transform: translateY(6px);
-  }
-  .bc-a {
-    background: var(--board); border: 1.5px solid var(--ink); border-radius: 10px 10px 10px 2px;
-    padding: 11px 13px; font-size: 12.5px; line-height: 1.7; color: var(--ink);
-    opacity: 0; transform: translateY(6px);
-  }
-  .bc-cite {
-    display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-size: 10px; font-weight: 800;
-    color: var(--ink); background: var(--yellow); border-radius: 4px; padding: 4px 9px; border: 1px solid var(--ink);
-  }
-  .bc-cite svg { width: 10px; height: 10px; }
-  .pin {
-    position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--marker);
-    border: 2px solid var(--ink); top: -7px; left: 50%; transform: translateX(-50%); z-index: 2;
-  }
-
-  /* real photo, pinned like an actual photograph on the corkboard */
-  .pinned-photo {
-    position: absolute; top: 42%; right: 0; width: 220px; background: #fff;
-    border: 2px solid var(--ink); padding: 8px 8px 10px; transform: rotate(5deg);
-    box-shadow: 5px 5px 0 rgba(43,38,32,.85);
-  }
-  .pinned-photo img { width: 100%; display: block; }
-  .pinned-photo .photo-cap { font-family: var(--hand-jp); font-weight: 700; font-size: 11px; text-align: center; margin-top: 7px; color: var(--ink-soft); }
-  @media (max-width: 860px) { .pinned-photo { position: static; width: 100%; transform: none; margin-top: 8px; } }
-
-  /* ---------------- stat strip: pinned index cards, not bare text ---------------- */
-  .stats { background: var(--board-2); padding: 56px 0; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
-  @media (max-width: 760px) { .stats-grid { grid-template-columns: 1fr; gap: 34px; } }
-  .stat-card {
-    background: var(--paper); border: 2px solid var(--ink); border-radius: 3px; padding: 20px 20px 18px;
-    box-shadow: 4px 4px 0 rgba(43,38,32,.85); position: relative;
-  }
-  .stats-grid > .reveal:nth-child(1) .stat-card { transform: rotate(-1.5deg); }
-  .stats-grid > .reveal:nth-child(2) .stat-card { transform: rotate(1deg); }
-  .stats-grid > .reveal:nth-child(3) .stat-card { transform: rotate(-.8deg); }
-  .stat-card::before {
-    content: ""; position: absolute; top: -8px; left: 16px; width: 38px; height: 16px;
-    background: rgba(255,255,255,.6); border: 1px solid rgba(0,0,0,.04); transform: rotate(-4deg);
-  }
-  .stat-num { font-size: 32px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
-  .stat-num .unit { font-size: .42em; font-weight: 700; color: var(--ink-soft); margin-left: 2px; }
-  .stat-label { font-size: 12px; line-height: 1.7; margin-top: 9px; font-family: var(--hand-jp); font-weight: 700; color: var(--ink-soft); }
-  .stat-src { font-size: 10.5px; opacity: .6; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
-
-  /* ---------------- section heads ---------------- */
-  .section-pad { padding: 90px 0; }
-  h2.section-h {
-    font-size: clamp(26px, 3.2vw, 38px); font-weight: 800; color: var(--ink); letter-spacing: -.005em;
-    line-height: 1.4; text-wrap: balance; margin-bottom: 14px;
-  }
-  .section-lead { font-size: 15px; line-height: 1.9; max-width: 56ch; }
-
-  /* ---------------- proof ---------------- */
-  .proof { background: var(--board); }
-  .proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 44px; }
-  @media (max-width: 860px) { .proof-grid { grid-template-columns: 1fr; } }
-  .proof-case { background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; padding: 22px; }
-  .proof-case.no { border-style: dashed; }
-  .case-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; margin-bottom: 12px; }
-  .case-label.ok { color: var(--sage-ink); }
-  .case-label.no { color: var(--pink-ink); }
-  .case-label svg { width: 13px; height: 13px; }
-  .proof-q { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 9px; font-weight: 700; }
-  .proof-bubble { font-size: 14px; line-height: 1.85; color: var(--ink); }
-  .proof-bubble.refusal { color: var(--ink-soft); }
-
-  /* ---------------- pricing: two quotation slips, slightly askew ---------------- */
-  .pricing { background: var(--paper); }
-  .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; margin-top: 48px; align-items: start; }
-  @media (max-width: 780px) { .price-grid { grid-template-columns: 1fr; gap: 46px; } }
-  .price-card {
-    border: 2px solid var(--ink); border-radius: 3px; padding: 28px 26px 36px; position: relative; background: var(--paper);
-    box-shadow: 5px 5px 0 rgba(43,38,32,.85); transform: rotate(-1.2deg);
-  }
-  .price-card.featured { background: var(--yellow); transform: rotate(1deg); box-shadow: 6px 6px 0 rgba(43,38,32,.9); }
-  .price-card::after {
-    content: ""; position: absolute; left: 18px; right: 18px; bottom: 16px; border-top: 1.5px dashed rgba(43,38,32,.25);
-  }
-  .price-card.featured::before {
-    content: "毎月"; position: absolute; top: -13px; left: 22px;
-    background: var(--ink); color: var(--paper); font-size: 10.5px; font-weight: 800; padding: 4px 12px; border-radius: 3px;
-    transform: rotate(-2deg);
-  }
-  .price-kicker { font-size: 12px; color: var(--ink-soft); font-weight: 700; margin-bottom: 9px; }
-  .price-card.featured .price-kicker { color: var(--yellow-ink); }
-  .price-amount { font-size: 30px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .price-amount .yen { font-size: .5em; margin-right: 2px; }
-  .price-amount .per { font-size: .34em; font-weight: 600; }
-  .price-note { font-size: 12.5px; line-height: 1.8; margin: 12px 0 16px; }
-  .price-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-  .price-list li { display: flex; gap: 8px; font-size: 12.5px; align-items: flex-start; }
-  .price-list svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
-  .price-compare {
-    margin-top: 32px; padding: 18px 22px; border: 2px dashed var(--ink); border-radius: 6px;
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink);
-  }
-
-  /* ---------------- subsidy ---------------- */
-  .subsidy { background: var(--board); }
-  .subsidy-box {
-    margin-top: 36px; background: var(--sage); color: var(--sage-ink); border: 2px solid var(--ink); border-radius: 6px;
-    padding: 36px; display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center;
-  }
-  @media (max-width: 640px) { .subsidy-box { grid-template-columns: 1fr; } }
-  .frac-label { font-size: 12.5px; font-weight: 800; margin-bottom: 5px; }
-  .frac-num { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; }
-  .subsidy-text p { font-size: 13.5px; line-height: 1.85; }
-  .subsidy-text strong { font-weight: 800; }
-
-  /* ---------------- faq ---------------- */
-  .faq { background: var(--paper); }
-  .faq-list { margin-top: 40px; }
-  .faq-item { border-top: 2px solid var(--ink); }
-  .faq-item:last-child { border-bottom: 2px solid var(--ink); }
-  .faq-q {
-    width: 100%; text-align: left; background: none; border: none; cursor: pointer; padding: 20px 2px;
-    font: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink);
-    display: flex; justify-content: space-between; align-items: center; gap: 20px;
-  }
-  .faq-q .plus { width: 18px; height: 18px; position: relative; flex-shrink: 0; }
-  .faq-q .plus::before, .faq-q .plus::after { content: ""; position: absolute; background: var(--marker); }
-  .faq-q .plus::before { top: 8px; left: 0; width: 18px; height: 3px; }
-  .faq-q .plus::after { top: 0; left: 8px; width: 3px; height: 18px; transition: transform .25s var(--ease); }
-  .faq-item.open .plus::after { transform: rotate(90deg); }
-  .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s var(--ease); }
-  .faq-a p { font-size: 13px; line-height: 1.9; padding: 0 2px 20px; max-width: 60ch; }
-
-  /* ---------------- final cta ---------------- */
-  /* final CTA: a memo pinned in a dim room, not a generic centered dark-CTA */
-  .final-cta {
-    background: var(--ink); background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px);
-    background-size: 16px 16px; padding: 90px 24px 104px; display: flex; justify-content: center;
-  }
-  .cta-memo {
-    background: var(--paper); border-radius: 3px; padding: 44px 40px; max-width: 500px; width: 100%;
-    text-align: center; position: relative; transform: rotate(-1.4deg);
-    box-shadow: 9px 9px 0 rgba(0,0,0,.4);
-  }
-  .cta-memo .pin { width: 18px; height: 18px; top: -9px; }
-  .final-cta h2 { font-size: clamp(23px, 3.4vw, 32px); font-weight: 800; color: var(--ink); margin-bottom: 14px; text-wrap: balance; line-height: 1.4; }
-  .final-cta p { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 26px; line-height: 1.8; }
-  .final-cta .btn-primary { box-shadow: 4px 4px 0 var(--ink); }
-  .final-cta .btn-primary:hover { box-shadow: 6px 6px 0 var(--ink); }
-
-  footer {
-    background: var(--paper); padding: 36px 0;
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft);
-  }
-  footer .nav-mark { width: 20px; height: 20px; }
-  footer .foot-links { margin-left: auto; display: flex; gap: 20px; }
-</style>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/nav-components.css">
+<link rel="stylesheet" href="assets/css/hero-stats.css">
+<link rel="stylesheet" href="assets/css/proof-pricing.css">
+<link rel="stylesheet" href="assets/css/subsidy-faq-cta.css">
 </head>
 <body>
 
@@ -321,6 +33,12 @@
 </nav>
 
 <section class="hero torn-bottom">
+  <div class="hero-bg" id="heroBg" aria-hidden="true">
+    <div class="hero-bg-slide" style="background-image:url(assets/hero-bg-1.png)"></div>
+    <div class="hero-bg-slide" style="background-image:url(assets/hero-bg-2.jpg)"></div>
+    <div class="hero-bg-slide" style="background-image:url(assets/hero-bg-3.jpg)"></div>
+  </div>
+  <div class="hero-bg-overlay"></div>
   <div class="wrap">
     <div class="hero-head">
       <h1 class="hero-h">その質問、もう<span class="mark">総務</span>に聞かなくていい。</h1>
@@ -334,13 +52,17 @@
       </div>
     </div>
 
+    <div class="hero-run"><img src="assets/hero-running-man.png" alt="" aria-hidden="true"></div>
+
     <!-- corkboard: real product UI + sticky notes, scattered like an actual
          desk — no gradient blobs, no floating "feature" chips. -->
     <div class="board">
-      <div class="note y n1"><div class="note-text">出典が必ずつく</div></div>
-      <div class="note p n2"><div class="note-text">わからない時は<br>正直に言う</div></div>
-      <div class="note s n3"><div class="note-text">人数無制限<br>¥30,000〜/月</div></div>
-      <div class="note k n4"><div class="note-text">最短24時間で<br>デモ環境</div></div>
+      <div class="board-notes">
+        <div class="note y n1"><div class="note-text">出典が必ずつく</div></div>
+        <div class="note p n2"><div class="note-text">わからない時は<br>正直に言う</div></div>
+        <div class="note s n3"><div class="note-text">人数無制限<br>¥30,000〜/月</div></div>
+        <div class="note k n4"><div class="note-text">最短24時間で<br>デモ環境</div></div>
+      </div>
 
       <div class="pinned-photo">
         <div class="pin"></div>
@@ -369,6 +91,8 @@
 
 <section class="stats">
   <div class="wrap">
+    <img class="stats-decor stats-woman" src="assets/stats-woman.png" alt="" aria-hidden="true">
+    <img class="stats-decor stats-qa" src="assets/stats-qa.png" alt="" aria-hidden="true">
     <div class="stats-grid">
       <div class="reveal"><div class="stat-card">
         <div class="stat-num">64.9<span class="unit">%</span></div>
@@ -397,6 +121,7 @@
     </div>
     <div class="proof-grid">
       <div class="proof-case ok reveal">
+        <img class="proof-avatar" src="assets/proof-ok-man.png" alt="" aria-hidden="true">
         <div class="case-label ok">
           <svg viewBox="0 0 20 20" fill="none"><path d="M4 10.5l3.5 3.5L16 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           根拠がある場合
@@ -407,6 +132,7 @@
         </div>
       </div>
       <div class="proof-case no reveal">
+        <img class="proof-avatar" src="assets/proof-no-man.png" alt="" aria-hidden="true">
         <div class="case-label no">
           <svg viewBox="0 0 20 20" fill="none"><path d="M10 7v4M10 13.5h.01M17.5 10a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" stroke="currentColor" stroke-width="1.6"/></svg>
           根拠がない場合
@@ -426,6 +152,7 @@
       <h2 class="section-h">中小企業には、中小企業のための価格を。</h2>
       <p class="section-lead">大手クラウドツールのRAG機能は月額10万円前後、従業員100名以上の企業が中心です。当サービスは、人数の少ない企業でも導入しやすい価格に設計しています。</p>
     </div>
+    <img class="pricing-team" src="assets/pricing-team.png" alt="" aria-hidden="true">
     <div class="price-grid">
       <div class="price-card reveal">
         <div class="price-kicker">初期費用（1回のみ）</div>
@@ -460,14 +187,18 @@
     <div class="reveal">
       <h2 class="section-h">導入費用は、補助金の対象になる場合があります。</h2>
     </div>
-    <div class="subsidy-box reveal">
-      <div>
-        <div class="frac-label">補助率</div>
-        <div class="frac-num">最大2/3</div>
+    <div class="subsidy-row reveal">
+      <img class="subsidy-exclaim" src="assets/subsidy-exclaim.png" alt="" aria-hidden="true">
+      <div class="subsidy-box">
+        <div>
+          <div class="frac-label">補助率</div>
+          <div class="frac-num">最大2/3</div>
+        </div>
+        <div class="subsidy-text">
+          <p><strong>「デジタル化・AI導入補助金2026」</strong>の通常枠では、AIチャットボットを含むITツールの導入費用について、要件を満たす場合に <strong>最大2/3</strong> の補助を受けられる可能性があります。対象要件・申請枠は個別にご確認ください。導入のご相談時に、補助金活用についてもあわせてご案内します。</p>
+        </div>
       </div>
-      <div class="subsidy-text">
-        <p><strong>「デジタル化・AI導入補助金2026」</strong>の通常枠では、AIチャットボットを含むITツールの導入費用について、要件を満たす場合に <strong>最大2/3</strong> の補助を受けられる可能性があります。対象要件・申請枠は個別にご確認ください。導入のご相談時に、補助金活用についてもあわせてご案内します。</p>
-      </div>
+      <img class="subsidy-woman" src="assets/subsidy-woman.png" alt="" aria-hidden="true">
     </div>
   </div>
 </section>
@@ -493,6 +224,8 @@
         <div class="faq-a"><p>社内資料に根拠がない質問には「わかりません」とお答えします。回答には必ず出典（資料名・条項）を明示しますので、内容をその場で確認いただけます。</p></div>
       </div>
     </div>
+    <img class="faq-relax left" src="assets/faq-relax-man.png" alt="" aria-hidden="true">
+    <img class="faq-relax right" src="assets/faq-computer-questions.png" alt="" aria-hidden="true">
   </div>
 </section>
 
@@ -528,6 +261,26 @@
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20), { passive: true });
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // hero background slider: 3 photos, sliding sideways, every 5s
+  (function () {
+    const slides = document.querySelectorAll('#heroBg .hero-bg-slide');
+    if (!slides.length) return;
+    let current = 0;
+    function render() {
+      slides.forEach((el, i) => {
+        let offset = i - current;
+        if (offset > 1) offset -= slides.length;
+        if (offset < -1) offset += slides.length;
+        el.style.transform = `translateX(${offset * 100}%)`;
+      });
+    }
+    render();
+    if (!reduceMotion) {
+      setInterval(() => { current = (current + 1) % slides.length; render(); }, 5000);
+    }
+  })();
+
   if (!reduceMotion && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
